@@ -1,11 +1,78 @@
 {% extends "base_layout.html" %}
 
 {% block title %}
-    ניתוח מניות - דף הבית
+    {% if selected_ticker %}
+        {{ company_name | default(selected_ticker) }} - ניתוח מניות
+    {% else %}
+        ניתוח מניות - דף הבית
+    {% endif %}
 {% endblock %}
 
 {% block content %}
-    <h1>ניתוח מניות - דף הבית</h1>
-    <p>אנא הזן סימול טיקר בתיבת החיפוש והקלק על 'בחר מניה וטען נתונים' כדי להתחיל.</p>
-    {# Later, this is where the candlestick chart and other info will go [cite: 45, 56] #}
+    <h1 style="text-align: center;">
+        {% if selected_ticker %}
+            {{ company_name | default(selected_ticker) }} ({{ selected_ticker }})
+        {% else %}
+            ניתוח מניות - דף הבית
+        {% endif %}
+    </h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}" role="alert">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% if not selected_ticker and not chart1_json and not chart2_json and not chart3_json %}
+        <p style="text-align: center;">אנא הזן סימול טיקר בתיבת החיפוש למעלה ולחץ על 'בחר מניה וטען נתונים' כדי להתחיל.</p>
+    {% endif %}
+
+    <div id="charts_container" style="display: flex; flex-direction: column; gap: 20px;">
+        {% if chart1_json %}
+        <div id="chart1_div" class="chart-placeholder" style="width:100%; min-height:500px; border: 1px solid #ddd; box-shadow: 2px 2px 5px #eee;"></div>
+        {% elif selected_ticker and request.method == 'GET' %} 
+        {# הצג הודעה רק אם נבחר טיקר והגרף ספציפית לא נטען, ובבקשת GET (לא מיד אחרי POST) #}
+        {# כדי למנוע הצגת הודעות שגיאה לפני שניסינו לטעון #}
+        {# ניתן להסיר הודעה זו אם הודעות ה-flash מספקות #}
+        {% endif %}
+
+        {% if chart2_json %}
+        <div id="chart2_div" class="chart-placeholder" style="width:100%; min-height:500px; border: 1px solid #ddd; box-shadow: 2px 2px 5px #eee;"></div>
+        {% elif selected_ticker and request.method == 'GET' %}
+        {% endif %}
+
+        {% if chart3_json %}
+        <div id="chart3_div" class="chart-placeholder" style="width:100%; min-height:500px; border: 1px solid #ddd; box-shadow: 2px 2px 5px #eee;"></div>
+        {% elif selected_ticker and request.method == 'GET' %}
+        {% endif %}
+    </div>
+
+    {% if chart1_json or chart2_json or chart3_json %}
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function renderChart(chartId, chartJsonString) {
+                const chartDiv = document.getElementById(chartId);
+                if (chartJsonString && chartDiv) {
+                    try {
+                        // Attempt to parse the JSON string
+                        const chartData = JSON.parse(chartJsonString);
+                        Plotly.newPlot(chartId, chartData.data, chartData.layout, {responsive: true});
+                    } catch (e) {
+                        console.error("Error parsing or rendering chart " + chartId + ":", e);
+                        chartDiv.innerHTML = "<p style='color:red; text-align:center;'>שגיאה ברינדור גרף. בדוק את הקונסול לפרטים.</p>";
+                    }
+                }
+            }
+
+            renderChart('chart1_div', {{ chart1_json | tojson | safe if chart1_json else 'null' }});
+            renderChart('chart2_div', {{ chart2_json | tojson | safe if chart2_json else 'null' }});
+            renderChart('chart3_div', {{ chart3_json | tojson | safe if chart3_json else 'null' }});
+        });
+    </script>
+    {% endif %}
 {% endblock %}
