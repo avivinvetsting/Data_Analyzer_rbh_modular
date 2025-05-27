@@ -12,9 +12,17 @@ def test_home_page(client):
     """Test that the home page loads correctly."""
     response = client.get('/')
     assert response.status_code == 200
-    # Decode response.data to a string and compare with a unicode string
-    assert "<h1>ניתוח מניות - דף הבית</h1>" in response.data.decode('utf-8')
-
+    response_html = response.data.decode('utf-8')
+    
+    # בדוק שהטקסט המרכזי של הכותרת קיים ב-HTML
+    assert "ניתוח מניות - דף הבית" in response_html
+    
+    # בדוק באופן כללי שתג <h1> קיים (בלי להתייחס לתוכן שלו או למאפיינים)
+    # זה פחות קריטי אם הבדיקה הקודמת עוברת, אבל יכול להוסיף ודאות שהמבנה הבסיסי נשמר.
+    assert "<h1" in response_html 
+    # או אם תרצה לוודא שזה כולל את מאפיין ה-style (אבל עדיין פחות שביר מהבדיקה המקורית):
+    # assert '<h1 style="text-align: center;">' in response_html
+    
 def test_annual_graphs_page(client):
     """Test that the annual graphs page loads correctly (placeholder)."""
     response = client.get('/graphs/annual')

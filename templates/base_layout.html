@@ -28,11 +28,14 @@
 </head>
 <body>
     <div class="top-bar">
-        {# *** ודא שהטופס הזה מדויק, במיוחד ה-action וה-method *** #}
-        <form action="{{ url_for('home_bp.home') }}" method="POST">
-            <input type="text" name="ticker" placeholder="סימול (לדוגמה, AAPL)" value="{{ session.get('selected_ticker', '') }}">
-            <button type="submit">בחר מניה וטען נתונים</button>
-        </form>
+        <div style="display: flex; align-items: center; width: 100%;">
+            {# Form pushed to the left (start in LTR, which is right in RTL) #}
+            <form action="{{ url_for('home_bp.home') }}" method="POST" style="margin-right: auto;">
+                <input type="text" name="ticker" placeholder="סימול (לדוגמה, AAPL)" value="{{ session.get('selected_ticker', '') }}">
+                <button type="submit">בחר מניה וטען נתונים</button>
+            </form>
+            {#  ניתן להוסיף כאן אלמנטים נוספים שיופיעו בצד ימין של הבר העליון #}
+        </div>
     </div>
 
     <div class="main-container">
