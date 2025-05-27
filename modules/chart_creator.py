@@ -1,83 +1,88 @@
 # modules/chart_creator.py
 import plotly.graph_objects as go
 import pandas as pd
+from flask import current_app
 
 def create_candlestick_chart(df, chart_title, display_years=None):
-    """
-    Creates a Plotly candlestick chart from a DataFrame with moving averages.
-    Returns chart data as JSON string.
-    If display_years is provided, it truncates the data to the last N years for display.
-    """
-    if df.empty:
+    current_app.logger.info(f"Attempting to create candlestick chart. Title: '{chart_title}', Display Years: {display_years}")
+
+    if df is None or df.empty:
+        current_app.logger.warning(f"Cannot create chart '{chart_title}': Input DataFrame is empty or None.")
         return None
 
-    # ודא שהאינדקס הוא מסוג datetime
     if not isinstance(df.index, pd.DatetimeIndex):
-        df.index = pd.to_datetime(df.index)
+        try:
+            df.index = pd.to_datetime(df.index)
+            current_app.logger.debug(f"Converted index to DatetimeIndex for chart '{chart_title}'.")
+        except Exception as e:
+            current_app.logger.error(f"Error converting index to DatetimeIndex for chart '{chart_title}': {str(e)}")
+            current_app.logger.exception("Detailed traceback for index conversion error:")
+            return None
 
-    df_display = df.copy() # עבודה עם עותק
+    df_display = df.copy()
 
-    # חיתוך הנתונים אם display_years סופק
     if display_years and not df_display.empty:
-        # מצא את התאריך המאוחר ביותר בנתונים
-        latest_date_in_data = df_display.index.max()
-        # חשב את תאריך החיתוך אחורה מהתאריך המאוחר ביותר
-        cutoff_date = latest_date_in_data - pd.DateOffset(years=display_years)
-        df_display = df_display[df_display.index >= cutoff_date]
+        try:
+            latest_date_in_data = df_display.index.max()
+            cutoff_date = latest_date_in_data - pd.DateOffset(years=display_years)
+            df_display = df_display[df_display.index >= cutoff_date]
+            current_app.logger.debug(f"Data for chart '{chart_title}' sliced to display last {display_years} years. Rows after slice: {len(df_display)}")
+        except Exception as e:
+            current_app.logger.error(f"Error slicing data by display_years for chart '{chart_title}': {str(e)}")
 
-    if df_display.empty: # אם לאחר החיתוך אין נתונים (מקרה קצה)
+    if df_display.empty:
+        current_app.logger.warning(f"No data to display for chart '{chart_title}' after potential slicing (or initially empty).")
         return None
 
-    # חישוב ממוצעים נעים אם יש נתונים
-    if not df_display.empty:
+    try:
+        current_app.logger.debug(f"Calculating moving averages for chart '{chart_title}'.")
         windows = [20, 50, 100, 150, 200]
         for window in windows:
-            # min_periods=1 יחשב את הממוצע גם אם אין מספיק נתונים לחלון המלא (בתחילת הסדרה)
             df_display[f'MA{window}'] = df_display['Close'].rolling(window=window, min_periods=1).mean()
+        current_app.logger.debug(f"Moving averages calculated for chart '{chart_title}'.")
 
-    # יצירת רשימת הנתונים לגרף
-    figure_data = []
-    if not df_display.empty: # ודא שיש נתונים להצגת נרות
+        figure_data = []
         figure_data.append(
             go.Candlestick(x=df_display.index,
                            open=df_display['Open'],
                            high=df_display['High'],
                            low=df_display['Low'],
                            close=df_display['Close'],
-                           name='מחיר') # שם לעקבת הנרות
+                           name='מחיר')
         )
 
-        # הוספת עקבות (traces) של הממוצעים הנעים אם הם קיימים ב-df_display
-        ma_windows = [20, 50, 100, 150, 200]
-        # ניתן להתאים את הצבעים לפי העדפה
         ma_colors = ['blue', 'orange', 'green', 'red', 'purple'] 
-        
-        for i, window in enumerate(ma_windows):
+        for i, window in enumerate(windows):
             ma_col_name = f'MA{window}'
-            if ma_col_name in df_display.columns: # בדוק אם עמודת הממוצע הנע אכן קיימת
+            if ma_col_name in df_display.columns:
                 figure_data.append(
                     go.Scatter(x=df_display.index, 
                                y=df_display[ma_col_name], 
                                mode='lines', 
                                name=ma_col_name,
-                               line=dict(width=1.5, color=ma_colors[i % len(ma_colors)])) # קו דק יותר לממוצעים
+                               line=dict(width=1.5, color=ma_colors[i % len(ma_colors)]))
                 )
-    
-    # אם לאחר כל החישובים והבדיקות, אין נתונים להציג בגרף
-    if not figure_data:
-        return None
+        
+        if not figure_data:
+            current_app.logger.warning(f"No figure data could be prepared for chart '{chart_title}'.")
+            return None
 
-    # יצירת אובייקט הגרף עם כל הנתונים
-    fig = go.Figure(data=figure_data)
-    
-    # עדכון ה-layout של הגרף
-    fig.update_layout(
-        title_text=chart_title,
-        title_x=0.5, # מרכוז הכותרת
-        xaxis_title="תאריך",
-        yaxis_title="מחיר",
-        xaxis_rangeslider_visible=False, # הסתרת ה-rangeslider התחתון
-        legend_title_text='מקרא', # הוספת כותרת לאגדה
-        margin=dict(l=50, r=50, b=50, t=80, pad=4) # התאמת שוליים
-    )
-    return fig.to_json()
+        fig = go.Figure(data=figure_data)
+        
+        fig.update_layout(
+            title_text=chart_title,
+            title_x=0.5,
+            xaxis_title="תאריך",
+            yaxis_title="מחיר",
+            xaxis_rangeslider_visible=False,
+            legend_title_text='מקרא',
+            margin=dict(l=50, r=50, b=50, t=80, pad=4)
+        )
+        chart_json = fig.to_json()
+        current_app.logger.info(f"Successfully created JSON for chart '{chart_title}'.")
+        return chart_json
+
+    except Exception as e:
+        current_app.logger.error(f"Error during chart figure creation for '{chart_title}': {str(e)}")
+        current_app.logger.exception("Detailed traceback for chart creation error:")
+        return None
