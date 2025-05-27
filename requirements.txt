@@ -1,0 +1,6 @@
+Flask-WTF
+Flask
+pandas
+plotly
+yfinance
+pytest

@@ -1,203 +1,123 @@
-# Data_Analyzer (מנתח נתונים פיננסיים)
+# Data_Analyzer (Financial Data Analyzer)
 
-אפליקציית רשת מבוססת Flask (Python) לניתוח נתונים פיננסיים של חברות, תוך התמקדות בהורדת נתונים חיים מ-Yahoo Finance באמצעות ספריית `yfinance` והצגתם בצורה ויזואלית אינטראקטיבית באמצעות `Plotly`.
+A Flask (Python) web application for analyzing financial data of companies, focusing on downloading live data from Yahoo Finance using the `yfinance` library and displaying it in an interactive visual format using `Plotly`.
 
-## תכונות עיקריות
+## Key Features
 
--   הצגת נתוני מניות המשתמש יכול להזין טיקר של מניה.
--   אחזור נתונים דינמי הורדת נתוני מחירים היסטוריים (OHLCV) ושם חברה מלא באמצעות `yfinance`.
--   ויזואליזציה מתקדמת
-    -   יצירת גרפי נרות אינטראקטיביים באמצעות `Plotly`.
-    -   הצגת שלושה טווחי זמן שונים לניתוח בדף הבית
-        1.  גרף יומי (הצגת שנתיים אחרונות מתוך 3 שנות נתונים).
-        2.  גרף שבועי (5 שנים אחרונות).
-        3.  גרף חודשי (10 שנים אחרונות).
-    -   הוספת ממוצעים נעים (MA20, MA50, MA100, MA150, MA200) לכל הגרפים.
--   ממשק משתמש
-    -   דף בית להזנת טיקר והצגת הגרפים.
-    -   תפריט צד לניווט לחלקים עתידיים של האפליקציה (גרפים שנתייםרבעוניים מדוחות כספיים, הערכות שווי).
-    -   הצגת הודעות למשתמש (flash messages).
--   עיצוב מודולרי הפרדה ברורה של אחריויות בין רכיבי האפליקציה (טעינת נתונים, יצירת גרפים, ניתוב).
--   ארכיטקטורת Blueprints ארגון נתיבי Flask באמצעות Blueprints.
--   ניהול מפתח סודי שימוש בקובץ `secret.py` (שאינו ב-Git) לאחסון המפתח הסודי של Flask.
--   בדיקות (בתהליך) הקמת תשתית בדיקות באמצעות `pytest`.
+- Stock data display with user-input ticker functionality
+- Dynamic data retrieval of historical price data (OHLCV) and full company names using `yfinance`
+- Advanced visualization
+  - Interactive candlestick charts using `Plotly`
+  - Three different time ranges for analysis on the home page:
+    1. Daily chart (showing last 2 years from 3 years of data)
+    2. Weekly chart (last 5 years)
+    3. Monthly chart (last 10 years)
+  - Moving averages (MA20, MA50, MA100, MA150, MA200) added to all charts
+- User Interface
+  - Home page for ticker input and chart display
+  - Side menu for navigation to future application sections (annual/quarterly financial statement charts, valuations)
+  - User feedback messages (flash messages)
+- Modular design with clear separation of responsibilities between application components (data loading, chart creation, routing)
+- Blueprint architecture for organizing Flask routes
+- Secret key management using `secret.py` (not in Git) for storing Flask's secret key
+- Testing (in progress) Test infrastructure setup using `pytest`
 
-## התקנה
+## Installation
 
-1.  שכפל את המאגר (repository)
+1. Clone the repository
     ```bash
     git clone your_repository_url
     cd Data_Analyzer
     ```
 
-2.  צור סביבה וירטואלית והפעל אותה
+2. Create and activate a virtual environment
     ```bash
     python -m venv venv
     # On Windows
-    venvScriptsactivate
-    # On macOSLinux
-    source venvbinactivate
+    venv\Scripts\activate
+    # On macOS/Linux
+    source venv/bin/activate
     ```
 
-3.  התקן את התלויות הנדרשות
-    ודא שקובץ `requirements.txt` קיים ומכיל את הספריות הנדרשות (ראה סעיף `requirements.txt` למטה), והרץ
+3. Install required dependencies
+    Ensure the `requirements.txt` file exists and contains the required libraries (see `requirements.txt` section below), then run:
     ```bash
     pip install -r requirements.txt
     ```
 
-4.  הגדר את האפליקציה
-     צור קובץ `secret.py` בשורש הפרויקט עם `FLASK_SECRET_KEY` ייחודי. לדוגמה
-        ```python
-        # secret.py
-        FLASK_SECRET_KEY = 'your_very_secure_random_secret_key_here_generated_by_you'
-        ```
-        אל תכלול קובץ זה ב-Git. (הוסף אותו ל-`.gitignore`).
+4. Configure the application
+    Create a `secret.py` file in the project root with a unique `FLASK_SECRET_KEY`. For example:
+    ```python
+    # secret.py
+    FLASK_SECRET_KEY = 'your_very_secure_random_secret_key_here_generated_by_you'
+    ```
+    Do not include this file in Git. (Add it to `.gitignore`).
 
-## שימוש
+## Usage
 
-1.  הפעל את האפליקציה (מהתיקייה הראשית של הפרויקט `Data_Analyzer`)
+1. Run the application (from the main project directory `Data_Analyzer`)
     ```bash
     python app.py
     ```
 
-2.  פתח את הדפדפן ונווט לכתובת [http127.0.0.15000](http127.0.0.15000)
+2. Open your browser and navigate to [http://127.0.0.1:5000](http://127.0.0.1:5000)
 
-3.  הזן טיקר של מניה (לדוגמה AAPL, MSFT) בתיבת החיפוש בפינה השמאלית העליונה ולחץ על בחר מניה וטען נתונים.
-     יוצגו שלושה גרפי נרות עם ממוצעים נעים עבור הטיקר שנבחר.
+3. Enter a stock ticker (e.g., AAPL, MSFT) in the search box in the top left corner and click "Select Stock and Load Data"
+    Three candlestick charts with moving averages will be displayed for the selected ticker.
 
-4.  נווט בין הדפים באמצעות תפריט הצד (כרגע, דפים אלו הם placeholders).
+4. Navigate between pages using the side menu (currently, these pages are placeholders).
 
-## בדיקות
+## Testing
 
-הרץ את סוויטת הבדיקות באמצעות `pytest` מהתיקייה הראשית של הפרויקט
+Run the test suite using `pytest` from the main project directory:
 ```bash
 pytest
+```
 
-ניתן להריץ עם דגלים נוספים לפי הצורך (למשל, ללא כיסוי קוד למהירות בזמן פיתוח):
+Additional flags can be used as needed (e.g., without code coverage for speed during development):
+```bash
 pytest -p no:cov -p no:typeguard
+```
 
-מבנה הפרויקט (כללי)
+## Project Structure
+
+```
 Data_Analyzer/
-├── app.py                     # נקודת הכניסה הראשית של האפליקציה
-├── secret.py                  # (לא ב-Git) מפתח סודי של Flask
-├── requirements.txt           # תלויות הפרויקט
-├── modules/                   # מודולים פונקציונליים
-│   ├── init.py
-│   ├── price_history.py       # אחזור נתוני מחירים ושם חברה מ-yfinance
-│   ├── chart_creator.py       # יצירת גרפים אינטראקטיביים (Plotly)
-│   └── routes/                # מודולים של נתיבים (Blueprints)
-│       ├── init.py
-│       ├── home.py            # נתיבים הקשורים לדף הבית, בחירת טיקר והצגת גרפים
-│       ├── graphs.py          # נתיבים לדפי גרפים (מדוחות כספיים - placeholder)
-│       └── valuations.py      # נתיבים לדפי הערכות שווי (placeholder)
-├── templates/                 # תבניות HTML
-│   ├── base_layout.html       # תבנית הבסיס הראשית
-│   ├── content_home.html      # תוכן דף הבית (כולל הצגת הגרפים)
-│   ├── graphs_page.html       # תבנית לדף גרפים כללי (placeholder)
-│   └── evaluation_page.html   # תבנית לדף הערכות שווי (placeholder)
-├── tests/                     # תיקיית הבדיקות
-│   ├── init.py
-│   └── test_routes.py         # בדיקות לנתיבים
-└── .gitignore                 # קובץ המגדיר אילו קבצים לא לכלול ב-Git
+├── app.py                     # Main application entry point
+├── secret.py                  # (Not in Git) Flask secret key
+├── requirements.txt           # Project dependencies
+├── modules/                   # Functional modules
+│   ├── __init__.py
+│   ├── price_history.py       # Price data and company name retrieval from yfinance
+│   ├── chart_creator.py       # Interactive chart creation (Plotly)
+│   └── routes/                # Route modules (Blueprints)
+│       ├── __init__.py
+│       ├── home.py            # Home page routes, ticker selection and chart display
+│       ├── graphs.py          # Graph page routes (financial statements - placeholder)
+│       └── valuations.py      # Valuation page routes (placeholder)
+├── templates/                 # HTML templates
+│   ├── base_layout.html       # Main base template
+│   ├── content_home.html      # Home page content (including chart display)
+│   ├── graphs_page.html       # General graphs page template (placeholder)
+│   └── evaluation_page.html   # Valuation page template (placeholder)
+├── tests/                     # Test directory
+│   ├── __init__.py
+│   └── test_routes.py         # Route tests
+└── .gitignore                 # Git ignore file
+```
 
+## Core Design Decisions
 
----
+- **Modular Architecture:** Using Flask Blueprints
+- **Client-side Chart Rendering:** Plotly charts are created as JSON on the server and rendered in the browser using Plotly.js
+- **Live Data Retrieval:** Using `yfinance` for up-to-date price data
+- **Chart Data Transfer Without Large Session:** To prevent "session cookie too large" issues, chart JSON is passed directly from the route to the template during POST, not through the session. `session` is mainly used for storing the last entered ticker and `flash messages`
 
-### `project_map.md` (בעברית)
+## Future Considerations and Improvements
 
-מסמך זה יספק מפה מפורטת יותר של הרכיבים הפנימיים והקשרים ביניהם. אני אתבסס על המבנה של `project_map.md` שהיה משולב ב-`readme.txt` המקורי שלך ואעדכן אותו.
-
-```markdown
-# Data_Analyzer - מפת פרויקט (מעודכן ל-27 במאי 2025)
-
-מסמך זה מספק מפה מקיפה של היישום של Data_Analyzer, ומסביר את המטרה והקשרים בין הרכיבים השונים, החלטות עיצוב מרכזיות, והתפתחויות עתידיות.
-
-## 1. מטרת התוכנית הכוללת:
-
-* ליצור אפליקציית רשת (מבוססת Flask בפייתון) המאפשרת למשתמשים לנתח נתונים פיננסיים של חברות.
-* האפליקציה מורידה נתוני מחירים היסטוריים ושמות חברות באמצעות ספריית `yfinance`.
-* האפליקציה מציגה נתונים ויזואלית באמצעות גרפי נרות אינטראקטיביים של `Plotly`, כולל ממוצעים נעים.
-* מתוכננת פונקציונליות עתידית לניתוח דוחות כספיים, ביצוע הערכות שווי ועוד.
-
-## 2. רכיבי ליבה ומבנה קבצים:
-
-### 2.1. נקודת כניסה לאפליקציה
-**קובץ**: `app.py`
-* נקודת הכניסה הראשית שמגדירה ומפעילה את אפליקציית Flask.
-* טוענת את המפתח הסודי (`FLASK_SECRET_KEY`) מקובץ `secret.py`.
-* רושמת Blueprints עבור החלקים השונים של האפליקציה (`home_bp`, `graphs_bp`, `valuations_bp`).
-
-### 2.2. מודולים פונקציונליים מרכזיים (`modules/`)
-
-**קובץ**: `modules/price_history.py`
-* אחראי על אחזור נתוני מחירים היסטוריים (OHLCV) באמצעות `yfinance` (`get_price_history`).
-* אחראי על אחזור שם החברה המלא באמצעות `yfinance` (`get_company_name`).
-
-**קובץ**: `modules/chart_creator.py`
-* פונקציה `create_candlestick_chart` יוצרת גרפי נרות אינטראקטיביים עם `Plotly` מהנתונים שהתקבלו.
-* הפונקציה כוללת חישוב והוספה של ממוצעים נעים (20, 50, 100, 150, 200) לגרפים.
-* מחזירה את נתוני הגרף כ-JSON לרינדור בצד הלקוח.
-
-### 2.3. מטפלי נתיבים (Blueprints) (`modules/routes/`)
-
-**קובץ**: `modules/routes/home.py` (Blueprint: `home_bp`, נתיב: `/`)
-* מטפל בתצוגת דף הבית הראשי ובקבלת קלט טיקר מהמשתמש.
-* מקבל בקשות `GET` להצגת הדף ובקשות `POST` לעיבוד הטיקר.
-* לאחר קבלת טיקר ב-`POST`:
-    * מפעיל את `price_history.py` להורדת נתוני מחירים ושם חברה.
-    * מפעיל את `chart_creator.py` ליצירת JSON עבור שלושה גרפים (יומי, שבועי, חודשי) עם ממוצעים נעים.
-    * מעביר את ה-JSON של הגרפים ישירות לתבנית `content_home.html` לרינדור (ללא שימוש ב-session עבור ה-JSON עצמו).
-* משתמש ב-`flash` להצגת הודעות למשתמש.
-
-**קובץ**: `modules/routes/graphs.py` (Blueprint: `graphs_bp`, prefix: `/graphs`)
-* מטפל בתצוגות גרפים (כרגע placeholders): שנתיים (`/annual`) ורבעוניים (`/quarterly`).
-* מרנדר את תבנית `graphs_page.html`.
-
-**קובץ**: `modules/routes/valuations.py` (Blueprint: `valuations_bp`, prefix: `/valuations`)
-* מטפל בתצוגות הקשורות להערכות שווי (`/`).
-* מרנדר את תבנית `evaluation_page.html` (כרגע placeholder).
-
-### 2.4. תבניות HTML (`templates/`)
-
-* `base_layout.html`: תבנית הבסיס הראשית. כוללת:
-    * בר עליון עם טופס להזנת טיקר (ממוקם בצד שמאל עליון).
-    * תפריט צד לניווט.
-    * בלוקים לתוכן (`{% block content %}`) וכותרת (`{% block title %}`).
-* `content_home.html`: תוכן ספציפי לדף הבית.
-    * מציג את שם החברה והטיקר שנבחר.
-    * מציג הודעות `flash`.
-    * כולל `div`ים עבור כל אחד משלושת הגרפים.
-    * מכיל JavaScript לטעינת `Plotly.js` ולרינדור הגרפים מה-JSON שהועבר מהשרת.
-* `graphs_page.html`: תבנית placeholder לדפי גרפים.
-* `evaluation_page.html`: תבנית placeholder לדף הערכות שווי.
-
-### 2.5. קבצים מרכזיים אחרים
-
-* `secret.py` (לא ב-Git): מכיל את `FLASK_SECRET_KEY`.
-* `requirements.txt`: מפרט את התלויות של הפרויקט.
-* `tests/test_routes.py`: מכיל בדיקות יחידה בסיסיות לנתיבים.
-
-## 3. קשרים מרכזיים וזרימת נתונים (עבור דף הבית):
-
-1.  משתמש מזין טיקר בטופס ב-`base_layout.html` ושולח (POST ל-`/`).
-2.  הפונקציה `home()` ב-`modules/routes/home.py` מקבלת את הטיקר.
-3.  `home()` קוראת ל-`get_company_name` ו-`get_price_history` מ-`modules/price_history.py` לאחזור הנתונים.
-4.  `home()` קוראת ל-`create_candlestick_chart` מ-`modules/chart_creator.py` עבור כל טווח זמן נדרש, ליצירת JSON של גרפים עם ממוצעים נעים.
-5.  `home()` מעבירה את ה-JSON של הגרפים, שם החברה, והטיקר ישירות לפונקציה `render_template` עם התבנית `content_home.html`.
-6.  `content_home.html` משתמשת ב-JavaScript וב-Plotly.js כדי לרנדר את הגרפים מה-JSON שהתקבל.
-
-## 4. החלטות עיצוב מרכזיות (נוכחיות):
-
-* **ארכיטקטורה מודולרית:** שימוש ב-Flask Blueprints.
-* **רינדור גרפים בצד הלקוח:** גרפי Plotly נוצרים כ-JSON בשרת ומרונדרים בדפדפן באמצעות Plotly.js.
-* **אחזור נתונים חי:** שימוש ב-`yfinance` לאחזור נתוני מחירים עדכניים.
-* **העברת נתוני גרפים ללא Session גדול:** כדי למנוע בעיית "session cookie too large", ה-JSON של הגרפים מועבר ישירות מה-route לתבנית בעת ה-`POST`, ולא דרך ה-session. `session` משמש בעיקר לשמירת הטיקר האחרון שהוזן ול-`flash messages`.
-
-## 5. שיקולים עתידיים ותחומי שיפור:
-
-* **הוספת אפשרות הסתרה/הצגה של ממוצעים נעים** באופן אינטראקטיבי בגרפים.
-* שיפור נוסף של הטיפול בשגיאות ומשוב למשתמש.
-* פיתוח הפונקציונליות של דפי הגרפים (מדוחות כספיים) והערכות השווי.
-* אופטימיזציה של ביצועים במידת הצורך.
-* הרחבת כיסוי הבדיקות.
-* שקילת מעבר ל-AJAX לטעינת גרפים דינמית לשיפור נוסף של חוויית המשתמש
+- **Add option to hide/show moving averages** interactively in charts
+- Further improve error handling and user feedback
+- Develop functionality for financial statement charts and valuations pages
+- Performance optimization if needed
+- Expand test coverage
+- Consider transitioning to AJAX for dynamic chart loading to further improve user experience
