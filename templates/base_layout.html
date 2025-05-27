@@ -5,37 +5,127 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}ניתוח מניות{% endblock %}</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; background-color: #f4f7f6; }
-        .top-bar { background-color: #ffffff; padding: 10px 20px; border-bottom: 1px solid #dee2e6; display: flex; justify-content: flex-start; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        /* ... (שאר סגנונות ה-CSS שהוצגו קודם יכולים להישאר כאן) ... */
-        .top-bar form { display: flex; align-items: center; }
-        .top-bar input[type="text"] { padding: 8px 12px; margin-left: 10px; border: 1px solid #ced4da; border-radius: 4px; font-size: 1rem; }
-        .top-bar button { padding: 8px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; transition: background-color 0.2s ease-in-out; }
-        .top-bar button:hover { background-color: #0056b3; }
-        .main-container { display: flex; flex-grow: 1; }
-        .sidebar { width: 250px; background-color: #343a40; color: white; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
-        .sidebar h2 { font-size: 1.5em; margin-top: 0; margin-bottom: 25px; color: #ffffff; }
-        .sidebar nav ul { list-style-type: none; padding: 0; margin: 0; }
-        .sidebar nav ul li a { color: #adb5bd; text-decoration: none; display: block; padding: 12px 15px; border-radius: 4px; margin-bottom: 5px; transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out; }
-        .sidebar nav ul li a:hover { background-color: #495057; color: #ffffff; }
-        .content { flex-grow: 1; padding: 25px; background-color: #f4f7f6; }
-        .alert { padding: 10px 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; color: #fff; }
-        .alert-warning { background-color: #ffc107; color: #212529; border-color: #ffeeba; }
-        .alert-danger { background-color: #dc3545; border-color: #f5c6cb; }
-        .alert-success { background-color: #28a745; border-color: #c3e6cb; }
-        .alert-info { background-color: #17a2b8; border-color: #bee5eb; }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 100vh;
+            background-color: #f4f7f6;
+        }
+        .top-bar { 
+            background-color: #ffffff;
+            padding: 10px 20px; 
+            border-bottom: 1px solid #dee2e6; 
+            display: flex; /* הופך את ה-top-bar ל-flex container */
+            /* justify-content: flex-start;  ברירת המחדל אם לא מצוין אחרת */
+            align-items: center; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .top-bar .form-container { /* הוספנו קלאס ל-div שעוטף את הטופס */
+            margin-right: auto; /* דוחף את הטופס לשמאל (כי אנחנו ב-RTL) */
+        }
+        .top-bar form { 
+            display: flex; 
+            align-items: center; 
+        }
+        .top-bar input[type="text"] { 
+            padding: 8px 12px;
+            margin-left: 10px; 
+            border: 1px solid #ced4da; 
+            border-radius: 4px; 
+            font-size: 1rem;
+        }
+        .top-bar button { 
+            padding: 8px 15px; 
+            background-color: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 1rem;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .top-bar button:hover {
+            background-color: #0056b3;
+        }
+        .main-container { 
+            display: flex; 
+            flex-grow: 1; 
+        }
+        .sidebar { 
+            width: 250px; 
+            background-color: #343a40;
+            color: white; 
+            padding: 20px; 
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        .sidebar h2 { 
+            font-size: 1.5em; 
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #ffffff;
+        }
+        .sidebar nav ul { 
+            list-style-type: none; 
+            padding: 0; 
+            margin: 0;
+        }
+        .sidebar nav ul li a { 
+            color: #adb5bd;
+            text-decoration: none; 
+            display: block; 
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        .sidebar nav ul li a:hover { 
+            background-color: #495057; 
+            color: #ffffff;
+        }
+        .content { 
+            flex-grow: 1; 
+            padding: 25px;
+            background-color: #f4f7f6;
+        }
+        .alert {
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            color: #fff;
+        }
+        .alert-warning {
+            background-color: #ffc107;
+            color: #212529;
+            border-color: #ffeeba;
+        }
+        .alert-danger {
+            background-color: #dc3545;
+            border-color: #f5c6cb;
+        }
+        .alert-success {
+            background-color: #28a745;
+            border-color: #c3e6cb;
+        }
+        .alert-info {
+            background-color: #17a2b8;
+            border-color: #bee5eb;
+        }
     </style>
 </head>
 <body>
     <div class="top-bar">
-        <div style="display: flex; align-items: center; width: 100%;">
-            {# Form pushed to the left (start in LTR, which is right in RTL) #}
-            <form action="{{ url_for('home_bp.home') }}" method="POST" style="margin-right: auto;">
+        <div class="form-container"> {# עטיפה לטופס כדי למקם אותו בצד שמאל #}
+            <form action="{{ url_for('home_bp.home') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="text" name="ticker" placeholder="סימול (לדוגמה, AAPL)" value="{{ session.get('selected_ticker', '') }}">
                 <button type="submit">בחר מניה וטען נתונים</button>
             </form>
-            {#  ניתן להוסיף כאן אלמנטים נוספים שיופיעו בצד ימין של הבר העליון #}
         </div>
+        {#  ניתן להוסיף כאן אלמנטים נוספים שיופיעו בצד ימין של הבר העליון (אם יש) #}
     </div>
 
     <div class="main-container">
