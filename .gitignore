@@ -26,3 +26,5 @@ Documentation/
 
 # Ignore the log files
 app.log
+
+logs/
