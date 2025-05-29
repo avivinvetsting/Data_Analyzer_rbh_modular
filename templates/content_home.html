@@ -2,77 +2,155 @@
 
 {% block title %}
     {% if selected_ticker %}
-        {{ company_name | default(selected_ticker) }} - ניתוח מניות
+        {{ company_name | default(selected_ticker) }} - Stock Analysis
     {% else %}
-        ניתוח מניות - דף הבית
+        Stock Analysis - Home
     {% endif %}
 {% endblock %}
 
 {% block content %}
-    <h1 style="text-align: center;">
-        {% if selected_ticker %}
-            {{ company_name | default(selected_ticker) }} ({{ selected_ticker }})
-        {% else %}
-            ניתוח מניות - דף הבית
-        {% endif %}
-    </h1>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            {# הטופס כבר נמצא ב-base_layout.html, אז אין צורך בו כאן אלא אם יש לך עיצוב שונה לדף הבית #}
+            {# אם הטופס הראשי נמצא ב-base_layout, החלק הזה מיותר כאן #}
+            {# <h1 class="mb-4">Welcome to the Stock Analysis System</h1>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Select a Stock for Analysis</h5>
+                    <p class="card-text">Enter the stock symbol (e.g., AAPL, MSFT, GOOGL) to view data and charts.</p>
+                    <form method="POST" action="{{ url_for('home_bp.analyze') }}" class="mb-3">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="ticker" placeholder="Enter ticker symbol" value="{{ selected_ticker if selected_ticker else '' }}" required>
+                            <button type="submit" class="btn btn-primary">Analyze</button>
+                        </div>
+                    </form>
+                </div>
+            </div> #}
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }}" role="alert">
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+            {% if selected_ticker %} {# הצג מידע רק אם נבחר טיקר #}
+                <h2 class="mb-4">{{ company_name | default(selected_ticker) }}</h2>
 
-    {% if not selected_ticker and not chart1_json and not chart2_json and not chart3_json %}
-        <p style="text-align: center;">אנא הזן סימול טיקר בתיבת החיפוש למעלה ולחץ על 'בחר מניה וטען נתונים' כדי להתחיל.</p>
-    {% endif %}
+                {# הצגת הודעות flash (מועבר מ-base_layout, אבל אם רוצים אזור ספציפי כאן) #}
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
 
-    <div id="charts_container" style="display: flex; flex-direction: column; gap: 20px;">
-        {% if chart1_json %}
-        <div id="chart1_div" class="chart-placeholder" style="width:100%; min-height:500px; border: 1px solid #ddd; box-shadow: 2px 2px 5px #eee;"></div>
-        {% elif selected_ticker and request.method == 'GET' %} 
-        {# הצג הודעה רק אם נבחר טיקר והגרף ספציפית לא נטען, ובבקשת GET (לא מיד אחרי POST) #}
-        {# כדי למנוע הצגת הודעות שגיאה לפני שניסינו לטעון #}
-        {# ניתן להסיר הודעה זו אם הודעות ה-flash מספקות #}
-        {% endif %}
+                {% if chart1_json or chart2_json or chart3_json %}
+                    {% if chart1_json %}
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            {# הכותרת תגיע מה-JSON של הגרף עצמו #}
+                            <div id="chart1Div" style="width:100%; height:450px;"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if chart2_json %}
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div id="chart2Div" style="width:100%; height:450px;"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if chart3_json %}
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div id="chart3Div" style="width:100%; height:450px;"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% elif request.endpoint == 'home_bp.analyze' %} 
+                     {# אם זה אחרי ניסיון ניתוח ולא נוצרו גרפים, הודעות ה-flash יסבירו #}
+                {% endif %}
 
-        {% if chart2_json %}
-        <div id="chart2_div" class="chart-placeholder" style="width:100%; min-height:500px; border: 1px solid #ddd; box-shadow: 2px 2px 5px #eee;"></div>
-        {% elif selected_ticker and request.method == 'GET' %}
-        {% endif %}
-
-        {% if chart3_json %}
-        <div id="chart3_div" class="chart-placeholder" style="width:100%; min-height:500px; border: 1px solid #ddd; box-shadow: 2px 2px 5px #eee;"></div>
-        {% elif selected_ticker and request.method == 'GET' %}
-        {% endif %}
+                {% if company_info %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Company Information</h5>
+                        {% if company_info.description %}
+                        <p class="card-text"><strong>Description:</strong> {{ company_info.description }}</p>
+                        {% endif %}
+                        {% if company_info.sector %}
+                        <p class="card-text"><strong>Sector:</strong> {{ company_info.sector }}</p>
+                        {% endif %}
+                        {% if company_info.industry %}
+                        <p class="card-text"><strong>Industry:</strong> {{ company_info.industry }}</p>
+                        {% endif %}
+                        {% if company_info.website %}
+                        <p class="card-text"><strong>Website:</strong> <a href="{{ company_info.website }}" target="_blank">{{ company_info.website }}</a></p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% elif selected_ticker and not company_info and request.endpoint == 'home_bp.analyze' %}
+                    <div class="alert alert-info">Could not retrieve detailed company information.</div>
+                {% endif %}
+            {% else %}
+                <p class="lead">Please enter a stock ticker in the top bar to begin analysis.</p>
+            {% endif %}
+        </div>
     </div>
+</div>
+{% endblock %}
 
+{% block scripts %}
+    {{ super() if super }} 
+    
     {% if chart1_json or chart2_json or chart3_json %}
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            function renderChart(chartId, chartJsonString) {
-                const chartDiv = document.getElementById(chartId);
-                if (chartJsonString && chartDiv) {
-                    try {
-                        // Attempt to parse the JSON string
-                        const chartData = JSON.parse(chartJsonString);
-                        Plotly.newPlot(chartId, chartData.data, chartData.layout, {responsive: true});
-                    } catch (e) {
-                        console.error("Error parsing or rendering chart " + chartId + ":", e);
-                        chartDiv.innerHTML = "<p style='color:red; text-align:center;'>שגיאה ברינדור גרף. בדוק את הקונסול לפרטים.</p>";
+        {# טעינת Plotly - ודא שהיא לא נטענת שוב אם כבר נטענה ב-base_layout #}
+        {# אם base_layout.html כבר טוען את Plotly, אפשר להסיר את השורה הזו מכאן #}
+        <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script> 
+        <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                function renderPlotlyChart(chartId, chartJsonString) {
+                    const chartDiv = document.getElementById(chartId);
+                    if (!chartDiv) {
+                        console.error("Chart div not found for ID:", chartId);
+                        return;
+                    }
+
+                    if (typeof chartJsonString === 'string' && chartJsonString.trim() !== "" && chartJsonString.toLowerCase() !== 'null') {
+                        try {
+                            var graphData = JSON.parse(chartJsonString);
+                            if (graphData && typeof graphData.data !== 'undefined' && typeof graphData.layout !== 'undefined') {
+                                Plotly.newPlot(chartDiv, graphData.data, graphData.layout, {responsive: true});
+                                console.log(chartId + " rendered successfully.");
+                            } else {
+                                console.warn("Parsed JSON for " + chartId + " is not a valid Plotly object or is empty/missing data/layout properties. Parsed data:", graphData);
+                                chartDiv.innerHTML = '<p>נתוני הגרף (' + chartId.replace("Div","") + ') אינם תקינים.</p>';
+                            }
+                        } catch (e) {
+                            console.error("Error parsing or plotting JSON for " + chartId + ":", e);
+                            console.log("Problematic JSON string for " + chartId + ":", chartJsonString);
+                            chartDiv.innerHTML = '<p>שגיאה בטעינת הגרף (' + chartId.replace("Div","") + ') עקב בעיית JSON.</p>';
+                        }
+                    } else {
+                        console.warn("No valid JSON data string provided for chart: " + chartId + ". Value received:", chartJsonString);
+                        // הודעת ה-flash מהשרת אמורה לכסות את המקרה של "אין נתונים".
+                        // אפשר להוסיף הודעה ספציפית כאן אם רוצים, למשל:
+                        // chartDiv.innerHTML = '<p>לא סופקו נתונים לגרף (' + chartId.replace("Div","") + ').</p>';
                     }
                 }
-            }
 
-            renderChart('chart1_div', {{ chart1_json | tojson | safe if chart1_json else 'null' }});
-            renderChart('chart2_div', {{ chart2_json | tojson | safe if chart2_json else 'null' }});
-            renderChart('chart3_div', {{ chart3_json | tojson | safe if chart3_json else 'null' }});
-        });
-    </script>
+                {% if chart1_json %}
+                renderPlotlyChart('chart1Div', {{ chart1_json | tojson | safe }});
+                {% endif %}
+
+                {% if chart2_json %}
+                renderPlotlyChart('chart2Div', {{ chart2_json | tojson | safe }});
+                {% endif %}
+
+                {% if chart3_json %}
+                renderPlotlyChart('chart3Div', {{ chart3_json | tojson | safe }});
+                {% endif %}
+            });
+        </script>
     {% endif %}
 {% endblock %}

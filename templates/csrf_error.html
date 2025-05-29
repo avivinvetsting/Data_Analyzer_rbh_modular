@@ -1,0 +1,19 @@
+{% extends "base_layout.html" %}
+
+{% block title %}CSRF Error{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="alert alert-danger" role="alert">
+                <h4 class="alert-heading">Security Token Error!</h4>
+                <p>There was an issue with the security token for your request. This might happen if the page was open for too long before submitting a form.</p>
+                <hr>
+                <p class="mb-0">Reason: {{ reason | default('CSRF token missing or invalid.') }}</p>
+            </div>
+            <a href="{{ url_for('home_bp.index') }}" class="btn btn-primary mt-3">Back to Home and Try Again</a> {# תיקון כאן #}
+        </div>
+    </div>
+</div>
+{% endblock %}

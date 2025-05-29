@@ -9,8 +9,6 @@ venv/
 .DS_Store # macOS
 Thumbs.db # Windows
 
-# Ignore SimFin API key file
-simfin_api_key.txt
 
 # Ignore Python bytecode files
 __pycache__/

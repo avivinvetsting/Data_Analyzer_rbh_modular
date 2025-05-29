@@ -1,0 +1,83 @@
+{% extends "base_layout.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">User Management</h2>
+    
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-info">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>Pending Users</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user_id, user in users.items() %}
+                            {% if not user.is_approved %}
+                                <tr>
+                                    <td>{{ user_id }}</td>
+                                    <td>{{ user.username }}</td>
+                                    <td>
+                                        <a href="{{ url_for('user_action', user_id=user_id, action='approve') }}" 
+                                           class="btn btn-success btn-sm">Approve</a>
+                                        <a href="{{ url_for('user_action', user_id=user_id, action='reject') }}" 
+                                           class="btn btn-danger btn-sm"
+                                           onclick="return confirm('Are you sure you want to reject this user?')">Reject</a>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h4>Approved Users</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user_id, user in users.items() %}
+                            {% if user.is_approved %}
+                                <tr>
+                                    <td>{{ user_id }}</td>
+                                    <td>{{ user.username }}</td>
+                                    <td>
+                                        <span class="badge bg-success">Approved</span>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
