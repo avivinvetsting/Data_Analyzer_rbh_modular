@@ -13,18 +13,29 @@ import json
 # 1. טעינת המפתח הסודי
 # ---------------------------------------------------------------------------
 try:
-    from secret import FLASK_SECRET_KEY, ADMIN_USERNAME, ADMIN_PASSWORD
+    from secret import FLASK_SECRET_KEY # נסה לייבא גם את ADMIN_USERNAME ו-ADMIN_PASSWORD אם הם קריטיים לאתחול
+    if not FLASK_SECRET_KEY: # בדיקה נוספת שהמפתח אינו מחרוזת ריקה
+        raise ValueError("FLASK_SECRET_KEY in secret.py is empty.")
+    # תוכל להוסיף בדיקות דומות גם עבור ADMIN_USERNAME ו-ADMIN_PASSWORD אם הם חייבים להיות קיימים
+    # from secret import ADMIN_USERNAME, ADMIN_PASSWORD 
+    # if not ADMIN_USERNAME or not ADMIN_PASSWORD:
+    # raise ValueError("ADMIN_USERNAME or ADMIN_PASSWORD in secret.py is empty or missing.")
+
 except ImportError:
     print("="*80)
-    print("שגיאה: קובץ secret.py לא נמצא או שחסרים בו הגדרות.")
-    print("אנא צור קובץ secret.py עם המפתח והפרטים הבאים:")
-    print("FLASK_SECRET_KEY = 'your_strong_random_key'")
-    print("ADMIN_USERNAME = 'your_admin_username'")
-    print("ADMIN_PASSWORD = 'your_admin_password'")
+    print("שגיאה קריטית: קובץ secret.py לא נמצא.")
+    print("אנא צור קובץ secret.py בתיקייה הראשית של הפרויקט והגדר בו את FLASK_SECRET_KEY.")
+    # וכן את ADMIN_USERNAME ו-ADMIN_PASSWORD אם אתה בודק אותם למעלה
+    print("האפליקציה לא יכולה לעלות ללא הגדרות אלו.")
     print("="*80)
-    # במקום SystemExit, נעלה חריגה כדי שהשרת יתרסק אם הקובץ קריטי ולא נמצא
-    raise ImportError("Critical: secret.py not found or misconfigured. Application cannot start if it's essential.")
-
+    # העלאת SystemExit או ImportError תגרום לאפליקציה לקרוס כאן
+    raise SystemExit("CRITICAL: secret.py not found. Application cannot start.") 
+except ValueError as ve: # תופס את השגיאה שהעלינו אם המפתח ריק
+    print("="*80)
+    print(f"שגיאה קריטית בקובץ secret.py: {ve}")
+    print("האפליקציה לא יכולה לעלות ללא הגדרות אלו.")
+    print("="*80)
+    raise SystemExit(f"CRITICAL: Configuration error in secret.py: {ve}. Application cannot start.")
 
 # ---------------------------------------------------------------------------
 # 2. יצירת אפליקציית Flask והגדרת מפתח סודי
