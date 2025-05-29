@@ -4,10 +4,10 @@
 <div class="container mt-5">
     <h2 class="mb-4">User Management</h2>
     
-    {% with messages = get_flashed_messages() %}
+    {% with messages = get_flashed_messages(with_categories=true) %} {# הוספתי with_categories=true #}
         {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-info">{{ message }}</div>
+            {% for category, message in messages %} {# וגם כאן, כדי להתאים לקטגוריה #}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
             {% endfor %}
         {% endif %}
     {% endwith %}
@@ -27,17 +27,19 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for user_id, user in users.items() %}
+                        {# שינוי כאן: עוברים על רשימת המשתמשים #}
+                        {% for user in users %} 
                             {% if not user.is_approved %}
                                 <tr>
-                                    <td>{{ user_id }}</td>
+                                    <td>{{ user.id }}</td> {# שימוש ב-user.id #}
                                     <td>{{ user.username }}</td>
                                     <td>
-                                        <a href="{{ url_for('user_action', user_id=user_id, action='approve') }}" 
+                                        {# ודא ש-user_action מצפה ל-user.id ולא לשם אחר #}
+                                        <a href="{{ url_for('user_action', user_id=user.id, action='approve') }}" 
                                            class="btn btn-success btn-sm">Approve</a>
-                                        <a href="{{ url_for('user_action', user_id=user_id, action='reject') }}" 
+                                        <a href="{{ url_for('user_action', user_id=user.id, action='delete') }}" {# שיניתי מ-reject ל-delete כדי להתאים ל-app.py שלך #}
                                            class="btn btn-danger btn-sm"
-                                           onclick="return confirm('Are you sure you want to reject this user?')">Reject</a>
+                                           onclick="return confirm('Are you sure you want to delete this user? This action cannot be undone.')">Delete</a>
                                     </td>
                                 </tr>
                             {% endif %}
@@ -60,16 +62,25 @@
                             <th>ID</th>
                             <th>Username</th>
                             <th>Status</th>
+                             <th>Actions</th> {# הוספתי עמודת פעולות גם למשתמשים מאושרים #}
                         </tr>
                     </thead>
                     <tbody>
-                        {% for user_id, user in users.items() %}
+                        {# שינוי כאן: עוברים על רשימת המשתמשים #}
+                        {% for user in users %}
                             {% if user.is_approved %}
                                 <tr>
-                                    <td>{{ user_id }}</td>
+                                    <td>{{ user.id }}</td> {# שימוש ב-user.id #}
                                     <td>{{ user.username }}</td>
                                     <td>
                                         <span class="badge bg-success">Approved</span>
+                                    </td>
+                                    <td>
+                                        {% if user.id != 1 %} {# אל תאפשר למנהל למחוק את עצמו מכאן #}
+                                        <a href="{{ url_for('user_action', user_id=user.id, action='delete') }}" 
+                                           class="btn btn-outline-danger btn-sm"
+                                           onclick="return confirm('Are you sure you want to delete this approved user? This action cannot be undone.')">Delete</a>
+                                        {% endif %}
                                     </td>
                                 </tr>
                             {% endif %}
@@ -80,4 +91,4 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

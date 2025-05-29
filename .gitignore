@@ -28,4 +28,8 @@ Documentation/
 app.log
 
 logs/
+<<<<<<< HEAD
+=======
+
+>>>>>>> login-project
 old_files/

@@ -1,45 +1,55 @@
+# tests/test_routes.py
 import pytest
 from app import app # ייבוא אפליקציית ה-Flask שלך
+from flask import url_for
 
 @pytest.fixture
 def client():
     """Create and configure a new app instance for each test."""
-    # app.config['TESTING'] = True # מומלץ להוסיף בהמשך
+    app.config['TESTING'] = True
+    # הגדרת SERVER_NAME הכרחית כדי ש-url_for יעבוד מחוץ לקונטקסט בקשה פעילה בבדיקות
+    app.config['SERVER_NAME'] = 'localhost.localdomain' 
+    # לפעמים צריך גם את זה, אבל נתחיל רק עם SERVER_NAME
+    # app.config['APPLICATION_ROOT'] = '/'
+    # app.config['PREFERRED_URL_SCHEME'] = 'http'
+    
     with app.test_client() as client:
-        yield client
+        with app.app_context(): # דחיפת קונטקסט אפליקציה
+            yield client
 
-def test_home_page(client):
-    """Test that the home page loads correctly."""
-    response = client.get('/')
-    assert response.status_code == 200
-    response_html = response.data.decode('utf-8')
-    
-    # בדוק שהטקסט המרכזי של הכותרת קיים ב-HTML
-    assert "ניתוח מניות - דף הבית" in response_html
-    
-    # בדוק באופן כללי שתג <h1> קיים (בלי להתייחס לתוכן שלו או למאפיינים)
-    # זה פחות קריטי אם הבדיקה הקודמת עוברת, אבל יכול להוסיף ודאות שהמבנה הבסיסי נשמר.
-    assert "<h1" in response_html 
-    # או אם תרצה לוודא שזה כולל את מאפיין ה-style (אבל עדיין פחות שביר מהבדיקה המקורית):
-    # assert '<h1 style="text-align: center;">' in response_html
-    
-def test_annual_graphs_page(client):
-    """Test that the annual graphs page loads correctly (placeholder)."""
-    response = client.get('/graphs/annual')
-    assert response.status_code == 200
-    # Decode response.data to a string
-    assert "<h1>גרפים שנתיים</h1>" in response.data.decode('utf-8')
+def test_home_page_redirects_when_not_logged_in(client):
+    """Test that the home page (home_bp.index) redirects to login when not logged in."""
+    target_url = url_for('home_bp.index')
+    response = client.get(target_url)
+    assert response.status_code == 302
+    # ודא שההפניה היא לדף הלוגין, ושהיא כוללת את 'next' שמפנה חזרה לדף המקורי
+    # שימוש ב- _external=True כאן כי response.location יהיה URL מלא
+    # אבל מכיוון שאנחנו בודקים רק את הנתיב, עדיף לבנות את הנתיב הצפוי ללא הדומיין.
+    # או פשוט לבדוק שהנתיב 'login' נמצא ב-response.location
+    expected_redirect_path = url_for('login', next=target_url)
+    # response.location יהיה URL מלא, אז נבדוק רק את החלק של הנתיב
+    assert expected_redirect_path in response.location 
 
-def test_quarterly_graphs_page(client):
-    """Test that the quarterly graphs page loads correctly (placeholder)."""
-    response = client.get('/graphs/quarterly')
-    assert response.status_code == 200
-    # Decode response.data to a string
-    assert "<h1>גרפים רבעוניים</h1>" in response.data.decode('utf-8')
+def test_annual_graphs_page_redirects_when_not_logged_in(client):
+    """Test that the annual graphs page redirects to login when not logged in."""
+    target_url = url_for('graphs_bp.annual_graphs_page')
+    response = client.get(target_url)
+    assert response.status_code == 302
+    expected_redirect_path = url_for('login', next=target_url)
+    assert expected_redirect_path in response.location
 
-def test_valuations_page(client):
-    """Test that the valuations page loads correctly (placeholder)."""
-    response = client.get('/valuations/') # Ensure trailing slash matches your route definition
-    assert response.status_code == 200
-    # Decode response.data to a string
-    assert "<h1>הערכות שווי</h1>" in response.data.decode('utf-8')
+def test_quarterly_graphs_page_redirects_when_not_logged_in(client):
+    """Test that the quarterly graphs page redirects to login when not logged in."""
+    target_url = url_for('graphs_bp.quarterly_graphs_page')
+    response = client.get(target_url)
+    assert response.status_code == 302
+    expected_redirect_path = url_for('login', next=target_url)
+    assert expected_redirect_path in response.location
+
+def test_valuations_page_redirects_when_not_logged_in(client):
+    """Test that the valuations page redirects to login when not logged in."""
+    target_url = url_for('valuations_bp.valuations_page')
+    response = client.get(target_url)
+    assert response.status_code == 302
+    expected_redirect_path = url_for('login', next=target_url)
+    assert expected_redirect_path in response.location
