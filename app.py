@@ -26,7 +26,7 @@ except ImportError:
     raise ImportError("Critical: secret.py not found or misconfigured. Application cannot start if it's essential.")
 
 
-# ---------------------------------------------------------------------------
+# -------------------------------------------------------------------git s--------
 # 2. יצירת אפליקציית Flask והגדרת מפתח סודי
 # ---------------------------------------------------------------------------
 app = Flask(__name__)
