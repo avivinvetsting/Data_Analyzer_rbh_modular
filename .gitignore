@@ -27,4 +27,10 @@ Documentation/
 # Ignore the log files
 app.log
 
+# Ignore the path shortcut file
+path_shortcut.txt
+
+# Ignore CLAUDE.md
+CLAUDE.md
+
 logs/

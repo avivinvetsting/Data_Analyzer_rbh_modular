@@ -255,8 +255,8 @@ def manage_users():
         return redirect(url_for('home_bp.index'))
         
     app.logger.info(f"Admin user '{current_user.username}' accessed user management.")
-    # העבר רשימה של משתמשים לתבנית, לא את המילון עצמו
-    return render_template('admin/users.html', users=list(USERS.values()))
+    # העבר את המילון של משתמשים לתבנית
+    return render_template('admin/users.html', users=USERS)
 
 @app.route('/admin/users/<int:user_id>/<action>')
 @login_required
