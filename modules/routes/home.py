@@ -38,11 +38,12 @@ def sanitize_ticker(ticker_input):
 
 
 def clear_session_data():
-    """ניקוי נתוני סשן בצורה מרוכזת (לא כולל גרפים שכבר לא נשמרים בסשן)"""
-    session_keys = ['selected_ticker', 'company_name', 'company_info']
-    for key in session_keys:
-        session.pop(key, None)
-    current_app.logger.debug("Cleared core session data (ticker, company name, company info).")
+    """ניקוי כל נתוני הסשן (כולל מפתחות דינמיים שנוספו ע"י טסטים)"""
+    keys_to_keep = {'_permanent', 'csrf_token'}
+    for key in list(session.keys()):
+        if key not in keys_to_keep:
+            session.pop(key, None)
+    current_app.logger.debug("Cleared all session data except system keys.")
 
 
 def validate_ticker(raw_ticker_input):
