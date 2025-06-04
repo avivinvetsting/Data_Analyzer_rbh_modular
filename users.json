@@ -263,5 +263,75 @@
         "username": "specialuser12_1748855391",
         "password_hash": "scrypt:32768:8:1$UGCtCcrdV18nfUnq$bcdc32504e6c8338afdbf09149eea32a313093255582e93062f8339e2799c996d3bbc4a3b3c1ed98c579cf048fa08a52c1242663383626cfb74f6332d391ba7a",
         "is_approved": false
+    },
+    "54": {
+        "username": "testuser_1749019633",
+        "password_hash": "scrypt:32768:8:1$AeJMvqxVOsBevhYU$19bd2d1f4fec146646e7d9d6896e1e8f7edd59a0edb26e80e7b06634c413044db24271137802d3fe34f00d57a7f4e7fab954c949e2871bdb2dd641f1f7a37a17",
+        "is_approved": false
+    },
+    "55": {
+        "username": "specialuser0_1749019633",
+        "password_hash": "scrypt:32768:8:1$lv3fHegaViyYHoEf$6c34daad82564514c18e4770b23c49b9c9a9d06f147c1db26fb53b90029ff53d67fe5c1065eb0d500e378126dc816f12394a7026f6a4bdcaa85372c5fa5566d5",
+        "is_approved": false
+    },
+    "56": {
+        "username": "specialuser1_1749019633",
+        "password_hash": "scrypt:32768:8:1$SoecvItv7FO6DsQs$c4e975e2ca61fcf46ca7b285c6216a742bac2a3c36c186f7d78dc859b965f5862ea9fff174c06ea07b6298448a595fb9158493ef0acdd3fcb8e89fb42fade08e",
+        "is_approved": false
+    },
+    "57": {
+        "username": "specialuser2_1749019633",
+        "password_hash": "scrypt:32768:8:1$o0GYNJuIJFJt82p4$a2a9b77ba79dadbf941c91a9e86662a0b3f59f15e0be7bce5461d070b292c0922606834c57bafc9b2895da0a4485d588b91765a83e6492baf3544d1f765bfdd6",
+        "is_approved": false
+    },
+    "58": {
+        "username": "specialuser3_1749019634",
+        "password_hash": "scrypt:32768:8:1$d33z9sfdg1Bu41wz$c4e2ffaca806310fd6fd9e7cca859d22f9e2572c9bd93b7ee603bee035ec0ce2f6f42b357239c6e3bd5241e130be234da4a2bd72fc71205e655952e117a80800",
+        "is_approved": false
+    },
+    "59": {
+        "username": "specialuser4_1749019634",
+        "password_hash": "scrypt:32768:8:1$XlGguzy3YhkCFYBl$47937e47978e0d45ab81bc7f5a1fc20cd1f936bea89898452594d3d465803a45a9cbdc34a15a89e1fda386d5ce7760211fef72d1d6755b373628e1f109672485",
+        "is_approved": false
+    },
+    "60": {
+        "username": "specialuser5_1749019634",
+        "password_hash": "scrypt:32768:8:1$s9a67aOapFoJ0VB1$b9a9ec0eb4a572f25acde87761ad5e8a677dee0f0ee245bc36acec59560682a0f0b14a9dba535bf638cb0f68fcf5141eb8dc3c80522719fa0ad390ed20e21982",
+        "is_approved": false
+    },
+    "61": {
+        "username": "specialuser6_1749019634",
+        "password_hash": "scrypt:32768:8:1$ZNs7a1OxnLwbpyZj$11d610d290440c5abf04cee4c79a96f689122135c18172ea4553bd39a6e0a811a90106781e448e275535f38d8f053fc011224ef87a757b378890e1d200d60071",
+        "is_approved": false
+    },
+    "62": {
+        "username": "specialuser7_1749019634",
+        "password_hash": "scrypt:32768:8:1$9DzkFnTQweQrGVgV$6153cb0f23bf15b51a3c3717fa1d65b4d2409b9333fd7b92a6c425d3c91dafc2cef9d0a3fc19ca9ea302f880e890c50b61bf7daaab6c72d7b702828e2bc33da3",
+        "is_approved": false
+    },
+    "63": {
+        "username": "specialuser8_1749019634",
+        "password_hash": "scrypt:32768:8:1$ahHoVzv3ymBm1jum$b95005a8a2ac902a14f5d3830ae2bd3bd47d547f29b325f3198ae1d7e8a7928c7c8d1a4454b46d553fb929c942220dadf36c277d77aad49b7e9aa27bb80dd778",
+        "is_approved": false
+    },
+    "64": {
+        "username": "specialuser9_1749019634",
+        "password_hash": "scrypt:32768:8:1$qviWBPJiNabVsLY2$00c9bb3737f8372220107b64976f369fade530cb2e6f472cbecfea2fac6c35b0dd10b1b4cd8c06f66739565b2b13c1deb56de854193d984f840dbcbcc58ecb01",
+        "is_approved": false
+    },
+    "65": {
+        "username": "specialuser10_1749019635",
+        "password_hash": "scrypt:32768:8:1$SIxkSUptcZ4kW3nq$26706fe6d9e0df60aa343df6178497b0edaf3c0d30c26395ce7cc256a71fe3971541309896b01f4bb60468cb95d75e48cd4c29599e4298e12d7e95b42a255b94",
+        "is_approved": false
+    },
+    "66": {
+        "username": "specialuser11_1749019635",
+        "password_hash": "scrypt:32768:8:1$H8hkLkmucoWF1xiq$2336d009b5e1576e5d5a87aba2266b9ea1e81f5616c4325846bfa3bbb5b4fdc7aa6b708df91cf0be40fdde1ddb7a87fb3230fa553525c42009c0cd1467593755",
+        "is_approved": false
+    },
+    "67": {
+        "username": "specialuser12_1749019635",
+        "password_hash": "scrypt:32768:8:1$9cb2nsjnZN29H2o8$6f9677f28b397c02175d849fefe97af985d42a611cbea6e06bea278fd8084a152b93d115f25a540978eb5bf82e4f00fc7b7d235f7483709183ae1551162c8f36",
+        "is_approved": false
     }
 }

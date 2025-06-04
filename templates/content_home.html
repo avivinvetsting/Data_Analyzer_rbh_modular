@@ -76,7 +76,10 @@
                     <div class="card-body">
                         <h5 class="card-title">Company Information</h5>
                         {% if company_info.description %}
-                        <p class="card-text"><strong>Description:</strong> {{ company_info.description }}</p>
+                        <p class="card-text"><strong>Description (English):</strong> {{ company_info.description }}</p>
+                        {% endif %}
+                        {% if company_info.description_he %}
+                        <p class="card-text"><strong>Description (Hebrew):</strong> {{ company_info.description_he }}</p>
                         {% endif %}
                         {% if company_info.sector %}
                         <p class="card-text"><strong>Sector:</strong> {{ company_info.sector }}</p>

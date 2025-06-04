@@ -4,6 +4,8 @@ import pandas as pd
 from cachetools import TTLCache, cached
 from flask import current_app 
 from typing import Optional, Dict # הוספנו Optional ו-Dict (למרות ש-Dict לא חובה כאן אם משתמשים ב-dict רגיל)
+from googletrans import Translator
+import time
 
 
 price_data_cache = TTLCache(maxsize=100, ttl=43000) 
@@ -67,6 +69,38 @@ def get_company_name(ticker_symbol: str) -> str:
         current_app.logger.exception(f"Detailed traceback for get_company_name error (ticker: {ticker_symbol}):")
         return ticker_symbol
 
+# Add debug print statements to translate_company_info
+def translate_company_info(company_info):
+    current_app.logger.info("Starting translation of company info")
+    translator = Translator()
+    if company_info and 'description' in company_info:
+        current_app.logger.info(f"Found description to translate: {company_info['description'][:100]}...")
+        try:
+            # Add a small delay to avoid rate limiting
+            time.sleep(1)
+            
+            # Try to detect the source language first
+            detected = translator.detect(company_info['description'])
+            current_app.logger.info(f"Detected language: {detected.lang} (confidence: {detected.confidence})")
+            
+            # Only translate if not already Hebrew
+            if detected.lang != 'he':
+                translated = translator.translate(company_info['description'], dest='he')
+                company_info['description_he'] = translated.text
+                current_app.logger.info(f"Successfully translated description to Hebrew: {company_info['description_he'][:100]}...")
+            else:
+                current_app.logger.info("Description is already in Hebrew, no translation needed")
+                company_info['description_he'] = company_info['description']
+        except Exception as e:
+            current_app.logger.error(f"Translation error: {str(e)}")
+            current_app.logger.exception("Full translation error traceback:")
+            # Set a default message in case of translation failure
+            company_info['description_he'] = "שגיאה בתרגום התיאור לעברית"
+    else:
+        current_app.logger.warning("No description found in company_info to translate")
+    return company_info
+
+# Modify get_company_info to call translate_company_info
 @cached(cache=company_info_cache) # הוספת קאש גם לפונקציה זו
 def get_company_info(ticker_symbol: str) -> Optional[dict]:
     current_app.logger.info(f"Attempting to get_company_info for '{ticker_symbol}'.")
@@ -88,6 +122,9 @@ def get_company_info(ticker_symbol: str) -> Optional[dict]:
         }
         # הסר מפתחות עם ערכי None אם אתה מעדיף שהם לא יופיעו
         company_details = {k: v for k, v in company_details.items() if v is not None}
+
+        # Translate company info to Hebrew
+        company_details = translate_company_info(company_details)
 
         if not any(company_details.values()): # אם כל הערכים הם None או ריקים (אחרי הסינון)
             current_app.logger.warning(f"Company info for '{ticker_symbol}' resulted in all empty fields.")

@@ -1,0 +1,12 @@
+<!-- Display company info -->
+<div class="company-info">
+    <h3>Company Information</h3>
+    <p><strong>Name:</strong> {{ company_info.name }}</p>
+    <p><strong>Description (English):</strong> {{ company_info.description }}</p>
+    <p><strong>Description (Hebrew):</strong> {{ company_info.description_he }}</p>
+    <p><strong>Sector:</strong> {{ company_info.sector }}</p>
+    <p><strong>Industry:</strong> {{ company_info.industry }}</p>
+    <p><strong>Website:</strong> <a href="{{ company_info.website }}" target="_blank">{{ company_info.website }}</a></p>
+    <!-- Debug print -->
+    <p>Debug: {{ company_info }}</p>
+</div> 

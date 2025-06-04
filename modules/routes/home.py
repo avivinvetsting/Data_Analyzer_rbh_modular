@@ -27,6 +27,13 @@ def index(): # שם הפונקציה הוא 'index'
     chart2_json = session.get('chart2_json')
     chart3_json = session.get('chart3_json')
     
+    if company_info_data:
+        current_app.logger.info(f"Company info data being passed to template: {company_info_data}")
+        if 'description_he' in company_info_data:
+            current_app.logger.info(f"Hebrew description found in company info: {company_info_data['description_he'][:100]}...")
+        else:
+            current_app.logger.warning("No Hebrew description found in company info")
+    
     current_app.logger.debug(f"Rendering content_home.html for GET. Ticker from session: {selected_ticker}")
     return render_template('content_home.html',
                            ticker=selected_ticker, # השם המקורי בתבנית שלך
