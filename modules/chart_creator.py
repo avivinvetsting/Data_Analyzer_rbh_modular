@@ -186,7 +186,7 @@ def create_all_candlestick_charts(df_daily_full: pd.DataFrame, ticker: str, comp
         if weekly_df.empty:
             current_app.logger.warning(f"Weekly resampled data is empty for {ticker}.")
         else:
-            charts['weekly_chart_json'] = create_candlestick_chart(weekly_df, f"{company_name} ({ticker}) - Weekly Prices (Last 5 Years)", add_ma=False, display_years=5)
+            charts['weekly_chart_json'] = create_candlestick_chart(weekly_df, f"{company_name} ({ticker}) - Weekly Prices (Last 5 Years)", add_ma=True, display_years=5)
     except Exception as e:
         current_app.logger.error(f"Error creating weekly chart for {ticker}: {str(e)}")
         current_app.logger.exception("Detailed traceback for weekly chart creation error:")
@@ -197,7 +197,7 @@ def create_all_candlestick_charts(df_daily_full: pd.DataFrame, ticker: str, comp
         if monthly_df.empty:
             current_app.logger.warning(f"Monthly resampled data is empty for {ticker}.")
         else:
-            charts['monthly_chart_json'] = create_candlestick_chart(monthly_df, f"{company_name} ({ticker}) - Monthly Prices (Last 10 Years)", add_ma=False, display_years=10)
+            charts['monthly_chart_json'] = create_candlestick_chart(monthly_df, f"{company_name} ({ticker}) - Monthly Prices (Last 10 Years)", add_ma=True, display_years=10)
     except Exception as e:
         current_app.logger.error(f"Error creating monthly chart for {ticker}: {str(e)}")
         current_app.logger.exception("Detailed traceback for monthly chart creation error:")

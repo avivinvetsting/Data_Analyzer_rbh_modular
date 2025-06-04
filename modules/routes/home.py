@@ -1,146 +1,131 @@
 # modules/routes/home.py
 from flask import Blueprint, render_template, request, session, redirect, url_for, flash, current_app
-from flask_login import login_required, current_user # ודא ש-current_user מיובא
+from flask_login import login_required, current_user
+from flask_wtf.csrf import CSRFProtect
 import pandas as pd
 import re 
 # ודא שהנתיבים לייבוא נכונים. אם הקבצים באותה תיקיית modules, אז:
 from modules.price_history import get_price_history, get_company_name, get_company_info 
 from modules.chart_creator import create_all_candlestick_charts # נשתמש בפונקציה המרכזת
+from werkzeug.exceptions import BadRequest
+import html
+import unicodedata
 
 home_bp = Blueprint('home_bp', __name__)
+csrf = CSRFProtect()
 
 # קבועים לולידציה
 TICKER_MIN_LENGTH = 1
 TICKER_MAX_LENGTH = 12
-TICKER_VALID_PATTERN = re.compile(r"^[A-Z0-9.\-^]+$")
+TICKER_VALID_PATTERN = re.compile(r"^[A-Za-z0-9.\-^]+$")  # מאפשר אותיות קטנות וגדולות
 
+def sanitize_ticker(ticker):
+    """ניקוי וטיהור הטיקר"""
+    # הסרת רווחים מיותרים
+    ticker = ticker.strip()
+    
+    # המרת תווים מיוחדים ל-ASCII
+    ticker = unicodedata.normalize('NFKD', ticker).encode('ASCII', 'ignore').decode('ASCII')
+    
+    # הסרת תווים לא רצויים
+    ticker = re.sub(r'[^A-Za-z0-9.\-^]', '', ticker)
+    
+    return ticker
+
+def clear_session_data():
+    """ניקוי נתוני סשן בצורה מרוכזת"""
+    session_keys = ['selected_ticker', 'company_name', 'company_info', 
+                   'chart1_json', 'chart2_json', 'chart3_json']
+    for key in session_keys:
+        session.pop(key, None)
+
+def validate_ticker(ticker):
+    """ולידציה של טיקר"""
+    if not ticker:
+        raise BadRequest('אנא הזן סימול טיקר.')
+        
+    # ניקוי וטיהור הטיקר
+    ticker = sanitize_ticker(ticker)
+        
+    if not (TICKER_MIN_LENGTH <= len(ticker) <= TICKER_MAX_LENGTH):
+        raise BadRequest(f'אורך הסימול חייב להיות בין {TICKER_MIN_LENGTH} ל-{TICKER_MAX_LENGTH} תווים.')
+        
+    if not TICKER_VALID_PATTERN.match(ticker):
+        raise BadRequest('הסימול יכול להכיל רק אותיות באנגלית, ספרות, נקודה (.), מקף (-), או גג (^).')
+    
+    return html.escape(ticker.upper())  # ממיר לאותיות גדולות ומונע XSS
 
 @home_bp.route('/') # הנתיב הראשי של ה-blueprint
 @login_required
 def index(): # שם הפונקציה הוא 'index'
-    current_app.logger.info(f"User '{current_user.username}' accessed home page (index route). Method: {request.method}")
+    current_app.logger.debug(f"User '{current_user.username}' accessed home page")
     
-    selected_ticker = session.get('selected_ticker')
-    company_name = session.get('company_name')
-    company_info_data = session.get('company_info') # שליפת מידע חברה מהסשן
-    chart1_json = session.get('chart1_json')
-    chart2_json = session.get('chart2_json')
-    chart3_json = session.get('chart3_json')
+    template_data = {
+        'selected_ticker': session.get('selected_ticker'),
+        'company_name': session.get('company_name'),
+        'company_info': session.get('company_info'),
+        'chart1_json': session.get('chart1_json'),
+        'chart2_json': session.get('chart2_json'),
+        'chart3_json': session.get('chart3_json')
+    }
     
-    if company_info_data:
-        current_app.logger.info(f"Company info data being passed to template: {company_info_data}")
-        if 'description_he' in company_info_data:
-            current_app.logger.info(f"Hebrew description found in company info: {company_info_data['description_he'][:100]}...")
-        else:
-            current_app.logger.warning("No Hebrew description found in company info")
-    
-    current_app.logger.debug(f"Rendering content_home.html for GET. Ticker from session: {selected_ticker}")
-    return render_template('content_home.html',
-                           ticker=selected_ticker, # השם המקורי בתבנית שלך
-                           selected_ticker=selected_ticker, # נשאיר גם את זה למקרה שהתבנית עודכנה
-                           company_name=company_name,
-                           company_info=company_info_data, # העברת מידע חברה
-                           chart1_json=chart1_json,
-                           chart2_json=chart2_json,
-                           chart3_json=chart3_json)
-
+    return render_template('content_home.html', **template_data)
 
 @home_bp.route('/analyze', methods=['POST']) # הנתיב לניתוח, אליו הטופס מפנה
 @login_required
+@csrf.exempt  # אם אתה משתמש ב-CSRF token בתבנית
 def analyze():
-    ticker_from_form = request.form.get('ticker', '').strip().upper()
-    current_app.logger.info(f"User '{current_user.username}' initiated analysis for ticker: '{ticker_from_form}'")
-    
-    # ולידציה
-    if not ticker_from_form:
-        flash('אנא הזן סימול טיקר.', 'warning')
-        current_app.logger.warning("Analysis attempt with empty ticker.")
-        return redirect(url_for('home_bp.index'))
-        
-    if not (TICKER_MIN_LENGTH <= len(ticker_from_form) <= TICKER_MAX_LENGTH):
-        flash(f'אורך הסימול חייב להיות בין {TICKER_MIN_LENGTH} ל-{TICKER_MAX_LENGTH} תווים.', 'warning')
-        current_app.logger.warning(f"Ticker '{ticker_from_form}' failed length validation (Length: {len(ticker_from_form)}).")
-        return redirect(url_for('home_bp.index'))
-        
-    if not TICKER_VALID_PATTERN.match(ticker_from_form):
-        flash('הסימול יכול להכיל רק אותיות באנגלית, ספרות, נקודה (.), מקף (-), או גג (^).', 'warning')
-        current_app.logger.warning(f"Ticker '{ticker_from_form}' failed character validation (Pattern: {TICKER_VALID_PATTERN.pattern}).")
-        return redirect(url_for('home_bp.index'))
-
-    # אם הולידציה עברה
-    session['selected_ticker'] = ticker_from_form
-    current_app.logger.info(f"Ticker '{ticker_from_form}' passed validation. Proceeding with data fetching.")
-
-    chart1_json, chart2_json, chart3_json = None, None, None
-    company_name_display = ticker_from_form 
-    company_info_display = None
-
     try:
-        current_app.logger.info(f"Fetching company name for '{ticker_from_form}'")
-        company_name_fetched = get_company_name(ticker_from_form)
-        if company_name_fetched and company_name_fetched.upper() != ticker_from_form: # השוואה לא רגישה לרישיות
-            company_name_display = company_name_fetched
-            current_app.logger.info(f"Company name for '{ticker_from_form}': '{company_name_display}'")
-        else:
-            current_app.logger.info(f"Using ticker symbol as company name for '{ticker_from_form}'.")
-        session['company_name'] = company_name_display
-
-        current_app.logger.info(f"Fetching company info for '{ticker_from_form}'")
-        company_info_display = get_company_info(ticker_from_form)
-        session['company_info'] = company_info_display # שמירת מידע חברה בסשן
-        if company_info_display:
-            current_app.logger.info(f"Company info fetched for '{ticker_from_form}'.")
-        else:
-            current_app.logger.warning(f"No detailed company info found for '{ticker_from_form}'.")
-
-
-        current_app.logger.info(f"Fetching daily price data (3y) for charts for ticker: '{ticker_from_form}'")
-        # נוריד פעם אחת את הנתונים היומיים לתקופה הארוכה ביותר שנצטרך (3 שנים לגרף היומי, אבל אולי יותר אם נרסמפל ממנו)
-        # לצורך הדוגמה, נניח שפונקציית הריסמפול מצפה לנתונים יומיים.
-        # אם create_all_candlestick_charts מקבלת נתונים יומיים, אז זה בסדר.
-        # הגרסה שלך ל-price_history לא כוללת create_all_charts, אלא קריאות נפרדות ל-get_price_history.
-        # נשתמש בפונקציה המרכזת מ-chart_creator שהייתה בגרסה הקודמת שלך, או שנשחזר את הקריאות הנפרדות.
-        # בגרסה הנוכחית של chart_creator שהעלית, יש create_all_candlestick_charts שמקבלת df_daily_full.
+        ticker_from_form = validate_ticker(request.form.get('ticker', ''))
         
-        df_daily_for_charts = get_price_history(ticker_from_form, period="10y", interval="1d") # טען מספיק נתונים לכל הריסמפולים
-
+        # ניקוי נתונים קודמים
+        clear_session_data()
+        
+        # שמירת הטיקר החדש
+        session['selected_ticker'] = ticker_from_form
+        
+        # קבלת שם החברה
+        company_name_fetched = get_company_name(ticker_from_form)
+        company_name_display = company_name_fetched if company_name_fetched and company_name_fetched.upper() != ticker_from_form else ticker_from_form
+        session['company_name'] = company_name_display
+        
+        # קבלת מידע על החברה
+        company_info_display = get_company_info(ticker_from_form)
+        session['company_info'] = company_info_display
+        
+        # טעינת נתוני מחירים ויצירת גרפים
+        df_daily_for_charts = get_price_history(ticker_from_form, period="10y", interval="1d")
+        
         if df_daily_for_charts is not None and not df_daily_for_charts.empty:
-            current_app.logger.info(f"Main daily data ({len(df_daily_for_charts)} rows) fetched for {ticker_from_form}. Creating all charts.")
             all_charts_json = create_all_candlestick_charts(df_daily_for_charts, ticker_from_form, company_name_display)
-            chart1_json = all_charts_json.get('daily_chart_json')
-            chart2_json = all_charts_json.get('weekly_chart_json')
-            chart3_json = all_charts_json.get('monthly_chart_json')
             
-            session['chart1_json'] = chart1_json
-            session['chart2_json'] = chart2_json
-            session['chart3_json'] = chart3_json
-
-            if not chart1_json and not chart2_json and not chart3_json:
-                 flash(f"לא נמצאו מספיק נתונים ליצירת גרפים עבור {ticker_from_form}.", 'warning')
-                 current_app.logger.warning(f"No charts could be generated for {ticker_from_form} by create_all_candlestick_charts.")
+            # שמירת הגרפים בסשן
+            for chart_key, session_key in [
+                ('daily_chart_json', 'chart1_json'),
+                ('weekly_chart_json', 'chart2_json'),
+                ('monthly_chart_json', 'chart3_json')
+            ]:
+                session[session_key] = all_charts_json.get(chart_key)
+            
+            if not any(session.get(key) for key in ['chart1_json', 'chart2_json', 'chart3_json']):
+                flash(f"לא נמצאו מספיק נתונים ליצירת גרפים עבור {ticker_from_form}.", 'warning')
         else:
             flash(f"לא נמצאו נתוני מחירים בסיסיים עבור {ticker_from_form} ליצירת גרפים.", "danger")
-            current_app.logger.error(f"Failed to fetch base daily data for {ticker_from_form} to generate charts.")
-
-        current_app.logger.debug(f"Rendering content_home.html after analysis for {ticker_from_form}")
-        # נעביר את כל המשתנים לתבנית, גם אם חלקם None
+            return redirect(url_for('home_bp.index'))
+            
         return render_template('content_home.html',
-                             ticker=ticker_from_form, 
-                             selected_ticker=ticker_from_form, # כדי לאכלס את התיבה
+                             selected_ticker=ticker_from_form,
                              company_name=company_name_display,
                              company_info=company_info_display,
-                             chart1_json=chart1_json,
-                             chart2_json=chart2_json,
-                             chart3_json=chart3_json)
+                             chart1_json=session.get('chart1_json'),
+                             chart2_json=session.get('chart2_json'),
+                             chart3_json=session.get('chart3_json'))
                              
+    except BadRequest as e:
+        flash(str(e), 'warning')
+        return redirect(url_for('home_bp.index'))
     except Exception as e:
-        current_app.logger.error(f"Unexpected error during analysis of ticker '{ticker_from_form}': {str(e)}")
-        current_app.logger.exception("Detailed traceback for analysis error:")
-        flash('אירעה שגיאה בלתי צפויה בעת ניתוח הטיקר. אנא נסה שוב.', 'danger')
-        session.pop('selected_ticker', None)
-        session.pop('company_name', None)
-        session.pop('company_info', None)
-        session.pop('chart1_json', None)
-        session.pop('chart2_json', None)
-        session.pop('chart3_json', None)
+        current_app.logger.error(f"Error analyzing ticker '{ticker_from_form}': {str(e)}")
+        clear_session_data()
+        flash('אירעה שגיאה בעת ניתוח הטיקר. אנא נסה שוב.', 'danger')
         return redirect(url_for('home_bp.index'))
