@@ -35,3 +35,4 @@ CLAUDE.md
 
 logs/
 old_files/
+.pytest_cache/
