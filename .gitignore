@@ -34,5 +34,8 @@ path_shortcut.txt
 CLAUDE.md
 
 logs/
+<<<<<<< HEAD
+=======
+
+>>>>>>> login-project
 old_files/
-.pytest_cache/

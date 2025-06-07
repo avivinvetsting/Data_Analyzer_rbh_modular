@@ -3,9 +3,9 @@ import plotly.graph_objects as go
 import pandas as pd
 from flask import current_app
 import plotly.express as px
-from typing import Optional, Dict, List # הוספת Optional, Dict, List
+from typing import Optional, Dict, List 
 
-import json # הוספנו למקרה שנצטרך לבדוק את ה-JSON שנוצר
+import json 
 
 
 def resample_ohlc(df: pd.DataFrame, rule: str) -> pd.DataFrame:
@@ -46,9 +46,8 @@ def create_candlestick_chart(df: pd.DataFrame, chart_title: str, add_ma: bool = 
     if not isinstance(df.index, pd.DatetimeIndex):
         try:
             df.index = pd.to_datetime(df.index, errors='coerce')
-            # השתמש ב- df.index.name אם הוא קיים, אחרת פשוט תבדוק אם האינדקס ריק אחרי הסרת NaT
             index_name = df.index.name if df.index.name is not None else 'index'
-            df.dropna(subset=[index_name] if index_name == 'index' and df.index.name is None else None, inplace=True) # יסיר שורות עם NaT באינדקס
+            df.dropna(subset=[index_name] if index_name == 'index' and df.index.name is None else None, inplace=True)
             if df.empty:
                  current_app.logger.warning(f"DataFrame became empty after index conversion/dropna for chart '{chart_title}'.")
                  return None
@@ -167,7 +166,7 @@ def create_candlestick_chart(df: pd.DataFrame, chart_title: str, add_ma: bool = 
 
 
 def create_all_candlestick_charts(df_daily_full: pd.DataFrame, ticker: str, company_name: str) -> Dict[str, Optional[str]]:
-    charts: Dict[str, Optional[str]] = { # Type hint עבור המשתנה charts
+    charts: Dict[str, Optional[str]] = {
         'daily_chart_json': None,
         'weekly_chart_json': None,
         'monthly_chart_json': None
@@ -182,22 +181,32 @@ def create_all_candlestick_charts(df_daily_full: pd.DataFrame, ticker: str, comp
 
     try:
         current_app.logger.info(f"Resampling daily data to weekly for {ticker}.")
-        weekly_df = resample_ohlc(df_daily_full, 'W-FRI')
+        weekly_df = resample_ohlc(df_daily_full, 'W-FRI') 
         if weekly_df.empty:
             current_app.logger.warning(f"Weekly resampled data is empty for {ticker}.")
         else:
-            charts['weekly_chart_json'] = create_candlestick_chart(weekly_df, f"{company_name} ({ticker}) - Weekly Prices (Last 5 Years)", add_ma=True, display_years=5)
+            charts['weekly_chart_json'] = create_candlestick_chart(
+                weekly_df, 
+                f"{company_name} ({ticker}) - Weekly Prices (Last 5 Years)", 
+                add_ma=True,  # <--- שינוי כאן
+                display_years=5
+            )
     except Exception as e:
         current_app.logger.error(f"Error creating weekly chart for {ticker}: {str(e)}")
         current_app.logger.exception("Detailed traceback for weekly chart creation error:")
     
     try:
         current_app.logger.info(f"Resampling daily data to monthly for {ticker}.")
-        monthly_df = resample_ohlc(df_daily_full, 'M')
+        monthly_df = resample_ohlc(df_daily_full, 'M') 
         if monthly_df.empty:
             current_app.logger.warning(f"Monthly resampled data is empty for {ticker}.")
         else:
-            charts['monthly_chart_json'] = create_candlestick_chart(monthly_df, f"{company_name} ({ticker}) - Monthly Prices (Last 10 Years)", add_ma=True, display_years=10)
+            charts['monthly_chart_json'] = create_candlestick_chart(
+                monthly_df, 
+                f"{company_name} ({ticker}) - Monthly Prices (Last 10 Years)", 
+                add_ma=True,  # <--- שינוי כאן
+                display_years=10
+            )
     except Exception as e:
         current_app.logger.error(f"Error creating monthly chart for {ticker}: {str(e)}")
         current_app.logger.exception("Detailed traceback for monthly chart creation error:")
@@ -220,7 +229,7 @@ def create_simple_timeseries_chart(df: pd.DataFrame, date_column: str, value_col
         return None
 
     try:
-        df_copy = df.copy() # עבודה על עותק כדי לא לשנות את ה-DataFrame המקורי
+        df_copy = df.copy() 
         if not pd.api.types.is_datetime64_any_dtype(df_copy[date_column]):
             df_copy[date_column] = pd.to_datetime(df_copy[date_column], errors='coerce')
             df_copy.dropna(subset=[date_column], inplace=True)
