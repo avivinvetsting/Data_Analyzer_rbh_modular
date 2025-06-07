@@ -4,7 +4,7 @@ import pandas as pd
 from cachetools import TTLCache, cached
 from flask import current_app 
 from typing import Optional, Dict # הוספנו Optional ו-Dict 
-from googletrans import Translator # 1. ייבוא ספריית התרגום
+from deep_translator import GoogleTranslator # 1. ייבוא ספריית התרגום
 
 # הגדרת אובייקטי הקאש
 price_data_cache = TTLCache(maxsize=100, ttl=43000)  # 12 שעות
@@ -17,12 +17,12 @@ def translate_text_to_hebrew(text_to_translate: Optional[str]) -> Optional[str]:
         current_app.logger.debug("translate_text_to_hebrew: No text provided for translation.")
         return None
     try:
-        translator = Translator()
-        # ניסיון לזהות את שפת המקור, אך אם אנחנו יודעים שהיא אנגלית, אפשר לציין src='en'
-        translation_result = translator.translate(text_to_translate, dest='he') # תרגום לעברית
-        if translation_result and translation_result.text:
-            current_app.logger.info(f"Text translated from '{translation_result.src}' to Hebrew successfully.")
-            return translation_result.text
+        # יצירת מתרגם מאנגלית לעברית
+        translator = GoogleTranslator(source='en', target='iw')
+        translation_result = translator.translate(text_to_translate)
+        if translation_result:
+            current_app.logger.info("Text translated from 'en' to Hebrew successfully.")
+            return translation_result
         else:
             current_app.logger.warning("Translation attempt returned no text.")
             return None # או החזר את הטקסט המקורי

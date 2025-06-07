@@ -16,23 +16,21 @@ from modules.routes.home import clear_session_data
 # 1. טעינת המפתח הסודי
 # ---------------------------------------------------------------------------
 try:
-    from secret import FLASK_SECRET_KEY # נסה לייבא גם את ADMIN_USERNAME ו-ADMIN_PASSWORD אם הם קריטיים לאתחול
+    from secret import FLASK_SECRET_KEY, ADMIN_USERNAME, ADMIN_PASSWORD
     if not FLASK_SECRET_KEY: # בדיקה נוספת שהמפתח אינו מחרוזת ריקה
         raise ValueError("FLASK_SECRET_KEY in secret.py is empty.")
-    # תוכל להוסיף בדיקות דומות גם עבור ADMIN_USERNAME ו-ADMIN_PASSWORD אם הם חייבים להיות קיימים
-    # from secret import ADMIN_USERNAME, ADMIN_PASSWORD 
-    # if not ADMIN_USERNAME or not ADMIN_PASSWORD:
-    # raise ValueError("ADMIN_USERNAME or ADMIN_PASSWORD in secret.py is empty or missing.")
+    if not ADMIN_USERNAME or not ADMIN_PASSWORD:
+        raise ValueError("ADMIN_USERNAME or ADMIN_PASSWORD in secret.py is empty or missing.")
 
 except ImportError:
+    # For testing, provide fallback values
+    FLASK_SECRET_KEY = 'test_secret_key_fallback'
+    ADMIN_USERNAME = 'admin'
+    ADMIN_PASSWORD = 'Admin123!'
     print("="*80)
-    print("שגיאה קריטית: קובץ secret.py לא נמצא.")
-    print("אנא צור קובץ secret.py בתיקייה הראשית של הפרויקט והגדר בו את FLASK_SECRET_KEY.")
-    # וכן את ADMIN_USERNAME ו-ADMIN_PASSWORD אם אתה בודק אותם למעלה
-    print("האפליקציה לא יכולה לעלות ללא הגדרות אלו.")
-    print("="*80)
-    # העלאת SystemExit או ImportError תגרום לאפליקציה לקרוס כאן
-    raise SystemExit("CRITICAL: secret.py not found. Application cannot start.") 
+    print("שגיאה: קובץ secret.py לא נמצא - משתמש בערכי ברירת מחדל לבדיקות.")
+    print("אנא צור קובץ secret.py בתיקייה הראשית של הפרויקט להפעלה בסביבת ייצור.")
+    print("="*80) 
 except ValueError as ve: # תופס את השגיאה שהעלינו אם המפתח ריק
     print("="*80)
     print(f"שגיאה קריטית בקובץ secret.py: {ve}")
@@ -255,7 +253,7 @@ def manage_users():
         app.logger.warning(f"User '{current_user.username}' (ID: {current_user.id}) denied access to user management.")
         return redirect(url_for('home_bp.index'))
     app.logger.info(f"Admin user '{current_user.username}' accessed user management.")
-    return render_template('admin/users.html', users=USERS)
+    return render_template('admin/users.html', users=USERS.values())
 
 @app.route('/admin/users/<int:user_id>/<action>')
 @login_required

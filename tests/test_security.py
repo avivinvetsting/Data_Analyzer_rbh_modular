@@ -7,7 +7,8 @@ import json
 import html as html_mod
 import re
 
-from app import User, generate_password_hash, USERS_FILE, save_users, load_users, ADMIN_USERNAME
+from app import User, generate_password_hash, USERS_FILE, save_users, load_users
+from secret import ADMIN_USERNAME
 # from modules.routes.home import TICKER_MIN_LENGTH, TICKER_MAX_LENGTH # אם רוצים להשתמש בקבועים ישירות
 
 @pytest.fixture
