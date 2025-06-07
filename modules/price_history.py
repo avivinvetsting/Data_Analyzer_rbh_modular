@@ -4,7 +4,7 @@ import pandas as pd
 from cachetools import TTLCache, cached
 from flask import current_app 
 from typing import Optional, Dict # הוספנו Optional ו-Dict (למרות ש-Dict לא חובה כאן אם משתמשים ב-dict רגיל)
-from googletrans import Translator
+from deep_translator import GoogleTranslator
 import time
 
 
@@ -72,25 +72,17 @@ def get_company_name(ticker_symbol: str) -> str:
 # Add debug print statements to translate_company_info
 def translate_company_info(company_info):
     current_app.logger.info("Starting translation of company info")
-    translator = Translator()
     if company_info and 'description' in company_info:
         current_app.logger.info(f"Found description to translate: {company_info['description'][:100]}...")
         try:
             # Add a small delay to avoid rate limiting
             time.sleep(1)
             
-            # Try to detect the source language first
-            detected = translator.detect(company_info['description'])
-            current_app.logger.info(f"Detected language: {detected.lang} (confidence: {detected.confidence})")
-            
-            # Only translate if not already Hebrew
-            if detected.lang != 'he':
-                translated = translator.translate(company_info['description'], dest='he')
-                company_info['description_he'] = translated.text
-                current_app.logger.info(f"Successfully translated description to Hebrew: {company_info['description_he'][:100]}...")
-            else:
-                current_app.logger.info("Description is already in Hebrew, no translation needed")
-                company_info['description_he'] = company_info['description']
+            # Translate description to Hebrew using deep-translator
+            translator = GoogleTranslator(source='auto', target='iw')
+            translated_text = translator.translate(company_info['description'])
+            company_info['description_he'] = translated_text
+            current_app.logger.info(f"Successfully translated description to Hebrew: {company_info['description_he'][:100]}...")
         except Exception as e:
             current_app.logger.error(f"Translation error: {str(e)}")
             current_app.logger.exception("Full translation error traceback:")
