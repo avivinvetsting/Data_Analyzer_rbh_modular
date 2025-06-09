@@ -35,6 +35,7 @@ path_shortcut.txt
 
 # Ignore CLAUDE.md
 CLAUDE.md
+.claude/
 
 old_files/
 Documents/
