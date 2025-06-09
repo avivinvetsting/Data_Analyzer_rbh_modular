@@ -1,0 +1,70 @@
+# app/main/routes.py
+"""
+Main application routes for core functionality.
+
+This module contains the primary application routes including the home page
+and core user interface. It integrates with the existing modular routes
+from the modules package.
+"""
+
+from flask import current_app
+from flask_login import login_required, current_user
+
+from app.main import bp
+
+
+@bp.route('/')
+@login_required
+def index():
+    """
+    Main application home page.
+    
+    Renders the home page template directly to avoid redirect loops.
+    
+    Returns:
+        Response: Rendered content_home.html template
+    """
+    from flask import render_template, session
+    
+    current_app.logger.debug(f"User '{current_user.username}' accessed home page (main.index route)")
+    template_data = {
+        'selected_ticker': session.get('selected_ticker'),
+        'company_name': session.get('company_name'),
+        'company_info': session.get('company_info'),
+        'chart1_json': None,
+        'chart2_json': None,
+        'chart3_json': None
+    }
+    return render_template('content_home.html', **template_data)
+
+
+# Register existing blueprints from modules package
+def register_legacy_blueprints(app):
+    """
+    Register the existing modular blueprints to maintain compatibility.
+    
+    This function registers the blueprints from the modules package,
+    allowing for gradual migration to the new architecture.
+    
+    Args:
+        app: Flask application instance
+    """
+    try:
+        # Import existing blueprints
+        from modules.routes.home import home_bp
+        from modules.routes.graphs import graphs_bp
+        from modules.routes.valuations import valuations_bp
+        from modules.routes.placeholders import placeholders_bp
+        
+        # Register with the application
+        app.register_blueprint(home_bp)
+        app.register_blueprint(graphs_bp)
+        app.register_blueprint(valuations_bp)
+        app.register_blueprint(placeholders_bp)
+        
+        app.logger.info("Legacy blueprints registered successfully")
+        
+    except ImportError as e:
+        app.logger.warning(f"Could not import legacy blueprints: {e}")
+    except Exception as e:
+        app.logger.error(f"Error registering legacy blueprints: {e}")

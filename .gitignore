@@ -1,6 +1,10 @@
-# Ignore virtual environment directory (if it was inside the project, which is not recommended)
+# Ignore virtual environment directories
 venv/
-# .venv/
+.venv/
+linux_venv/
+new_venv/
+test_env/
+test_venv/
 
 # Ignore editor/IDE specific files (example for VS Code)
 .vscode/
@@ -8,7 +12,6 @@ venv/
 # Ignore OS generated files
 .DS_Store # macOS
 Thumbs.db # Windows
-
 
 # Ignore Python bytecode files
 __pycache__/
@@ -20,12 +23,12 @@ Data/
 # Ignore Flask secret key
 secret.py
 
-
 # Ignore the Word documentations
 Documentation/
 
 # Ignore the log files
 app.log
+logs/
 
 # Ignore the path shortcut file
 path_shortcut.txt
@@ -33,11 +36,9 @@ path_shortcut.txt
 # Ignore CLAUDE.md
 CLAUDE.md
 
-logs/
-<<<<<<< HEAD
-=======
-
->>>>>>> login-project
 old_files/
 Documents/
 
+# Ignore testing artifacts
+.coverage
+pytestdebug.log

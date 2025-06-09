@@ -8,7 +8,8 @@ import json
 from urllib.parse import unquote # הוספנו unquote
 
 # ייבוא מהאפליקציה שלך (ודא שהנתיבים נכונים)
-from app import User, USERS_FILE, save_users, load_users, generate_password_hash
+from app.models import User, get_user_manager
+from werkzeug.security import generate_password_hash
 # נייבא את משתני האדמין מ-conftest כי הם מוגדרים שם עם fallback
 # הנחה ש-conftest.py נמצא באותה תיקייה (tests)
 from .conftest import ADMIN_USERNAME, ADMIN_PASSWORD

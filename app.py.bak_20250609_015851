@@ -1,4 +1,4 @@
-# app.py (MODIFIED - Authentication and Admin routes removed)
+# app.py (MODIFIED - Authentication routes removed)
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -42,7 +42,7 @@ except ValueError as ve: # תופס את השגיאה שהעלינו אם המפ
     print("="*80)
     raise SystemExit(f"CRITICAL: Configuration error in secret.py: {ve}. Application cannot start.")
 
-# ---------------------------------------------------------------------------
+# -------------------------------------------------------------------git s--------
 # 2. יצירת אפליקציית Flask והגדרת מפתח סודי
 # ---------------------------------------------------------------------------
 app = Flask(__name__)
@@ -153,7 +153,56 @@ def load_user(user_id_str):
         return None
 
 # Authentication routes removed - now using blueprints
-# Admin routes removed - now using admin blueprint
+# Removed: /login, /register, /logout routes
+
+@app.route('/admin/users')
+@login_required
+def manage_users():
+    app.logger.info(f"User '{current_user.username}' attempting to access user management.")
+    if current_user.id != 1: 
+        flash('אין לך הרשאות לגשת לדף זה.', 'danger')
+        app.logger.warning(f"User '{current_user.username}' (ID: {current_user.id}) denied access to user management.")
+        return redirect(url_for('home_bp.index'))
+    app.logger.info(f"Admin user '{current_user.username}' accessed user management.")
+    return render_template('admin/users.html', users=USERS.values())
+
+@app.route('/admin/users/<int:user_id>/<action>')
+@login_required
+def user_action(user_id, action):
+    app.logger.info(f"Admin '{current_user.username}' attempting action '{action}' on user ID {user_id}.")
+    if current_user.id != 1:
+        flash('אין לך הרשאות לבצע פעולה זו.', 'danger')
+        app.logger.warning(f"User '{current_user.username}' denied permission for user action '{action}' on user ID {user_id}.")
+        return redirect(url_for('home_bp.index'))
+        
+    target_user = USERS.get(user_id)
+    if not target_user:
+        flash('משתמש לא נמצא.', 'danger')
+        app.logger.warning(f"User action failed: User ID {user_id} not found.")
+        return redirect(url_for('manage_users'))
+        
+    if action == 'approve':
+        target_user.is_approved = True
+        save_users(USERS)
+        flash(f'משתמש {target_user.username} אושר בהצלחה.', 'success')
+        app.logger.info(f"User '{target_user.username}' (ID: {user_id}) was approved by admin '{current_user.username}'.")
+    # --- תיקון: הוספת תמיכה ב-reject כמחיקה ---
+    elif action == 'delete' or action == 'reject': 
+        if user_id == 1: 
+            flash('לא ניתן למחוק את חשבון המנהל הראשי.', 'danger')
+            app.logger.warning(f"Admin '{current_user.username}' attempted to delete primary admin account (ID: {user_id}). Action denied.")
+        else:
+            deleted_username = target_user.username
+            del USERS[user_id]
+            save_users(USERS)
+            flash(f'משתמש {deleted_username} נמחק/נדחה בהצלחה.', 'success') # עדכון הודעה
+            app.logger.info(f"User '{deleted_username}' (ID: {user_id}) was deleted/rejected by admin '{current_user.username}'.")
+    # --- סוף תיקון ---
+    else:
+        flash('פעולה לא חוקית.', 'warning')
+        app.logger.warning(f"Invalid action '{action}' attempted on user ID {user_id} by admin '{current_user.username}'.")
+        
+    return redirect(url_for('manage_users'))
 
 # ---------------------------------------------------------------------------
 # 5. אתחול CSRF protection
@@ -213,12 +262,5 @@ try:
     app.logger.debug("Registered valuations_bp blueprint.")
 except ImportError as e_import:
     app.logger.warning(f"Could not import or register valuations_bp: {e_import}")
-
-try:
-    from app.admin import bp as admin_bp
-    app.register_blueprint(admin_bp, url_prefix='/admin')
-    app.logger.debug("Registered admin_bp blueprint.")
-except ImportError as e_import:
-    app.logger.warning(f"Could not import or register admin_bp: {e_import}")
 
 # Entry point removed - use run.py instead

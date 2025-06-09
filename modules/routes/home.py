@@ -3,77 +3,17 @@ from flask import Blueprint, render_template, request, session, redirect, url_fo
 from flask_login import login_required, current_user
 # from flask_wtf.csrf import CSRFProtect # ודא שזה מוגדר כראוי אם אתה משתמש ב-CSRF
 import pandas as pd
-import re
-import html
-import unicodedata
 
 # ודא שהנתיבים לייבוא נכונים.
 from modules.price_history import get_price_history, get_company_name, get_company_info
 from modules.chart_creator import create_all_candlestick_charts
 from werkzeug.exceptions import BadRequest
 
+# Import utilities from the new utility module
+from app.utils import clear_session_data, validate_ticker, sanitize_ticker
+
 
 home_bp = Blueprint('home_bp', __name__)
-
-# קבועים לולידציה
-TICKER_MIN_LENGTH = 1
-TICKER_MAX_LENGTH = 12
-# דפוס התווים החוקיים לטיקר
-TICKER_VALID_PATTERN = re.compile(r"^[A-Za-z0-9.\-^]+$")
-
-def sanitize_ticker(ticker_input):
-    """פונקציית עזר לניקוי טיקר - בעיקר להמרת Unicode והסרת תווים בעייתיים מאוד (אם נשארו)."""
-    # הסרת רווחים מיותרים כבר נעשתה ב-validate_ticker לפני הקריאה לזה (אם בכלל נקרא)
-    # המרת תווים מיוחדים ל-ASCII (אם עדיין רוצים את השלב הזה)
-    # ticker = unicodedata.normalize('NFKD', ticker_input).encode('ASCII', 'ignore').decode('ASCII')
-    # הסרת תווים שאינם חלק מהתבנית המאושרת (בדרך כלל לא אמור לקרות אם validate_ticker עובד נכון)
-    # ticker = re.sub(r'[^A-Za-z0-9.\-^]', '', ticker)
-    # בשלב זה, אחרי התיקון ל-validate_ticker, ייתכן שפונקציה זו כבר לא נחוצה שם,
-    # או שתפקידה מצטמצם. כרגע נשאיר אותה כפי שהייתה אם כי השימוש בה עשוי להשתנות.
-    processed_ticker = ticker_input.strip()
-    processed_ticker = unicodedata.normalize('NFKD', processed_ticker).encode('ASCII', 'ignore').decode('ASCII')
-    # חשוב: השורה הבאה עלולה להסיר תווים שכבר אושרו. יש לשקול אם היא עדיין נחוצה.
-    # processed_ticker = re.sub(r'[^A-Za-z0-9.\-^]', '', processed_ticker) 
-    return processed_ticker
-
-
-def clear_session_data():
-    """ניקוי כל נתוני הסשן (כולל מפתחות דינמיים שנוספו ע"י טסטים)"""
-    keys_to_keep = {'_permanent', 'csrf_token'}
-    for key in list(session.keys()):
-        if key not in keys_to_keep:
-            session.pop(key, None)
-    current_app.logger.debug("Cleared all session data except system keys.")
-
-
-def validate_ticker(raw_ticker_input):
-    """
-    ולידציה של טיקר.
-    בודק קלט ריק, תווים לא חוקיים, ואורך.
-    מחזיר את הטיקר באותיות גדולות ועבר html.escape אם תקין.
-    """
-    if not raw_ticker_input: # בודק אם הקלט המקורי ריק
-        raise BadRequest('אנא הזן סימול טיקר.')
-
-    # הסר רווחים מההתחלה והסוף לפני בדיקת התבנית
-    processed_ticker = raw_ticker_input.strip()
-
-    if not processed_ticker: # אם לאחר strip לא נשאר כלום (היה רק רווחים)
-        raise BadRequest('אנא הזן סימול טיקר.')
-
-    # שלב 1: בדוק את תבנית התווים החוקיים על הקלט (לאחר strip)
-    if not TICKER_VALID_PATTERN.match(processed_ticker):
-        raise BadRequest('הסימול יכול להכיל רק אותיות באנגלית, ספרות, נקודה (.), מקף (-), או גג (^).')
-
-    # שלב 2: בדוק אורך (לאחר שהתווים אושרו כתקינים)
-    # הפונקציה sanitize_ticker כבר לא אמורה לשנות את התווים המותרים כאן.
-    # אם יש צורך בנורמליזציית Unicode נוספת, אפשר לשלב את sanitize_ticker כאן בזהירות.
-    # כרגע נניח ש-processed_ticker הוא מה שנבדוק לאורך.
-    if not (TICKER_MIN_LENGTH <= len(processed_ticker) <= TICKER_MAX_LENGTH):
-        raise BadRequest(f'אורך הסימול חייב להיות בין {TICKER_MIN_LENGTH} ל-{TICKER_MAX_LENGTH} תווים.')
-
-    # המרה לאותיות גדולות ו-escape בסוף, לאחר כל הולידציות
-    return html.escape(processed_ticker.upper())
 
 
 @home_bp.route('/')

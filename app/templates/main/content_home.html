@@ -1,0 +1,156 @@
+{% extends "base_layout.html" %}
+
+{% block title %}
+    {% if selected_ticker %}
+        {{ company_name | default(selected_ticker) }} - Stock Analysis
+    {% else %}
+        Stock Analysis - Home
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3"> {# השתמשתי ב-container-fluid ו-mt-3 לריווח קטן מה-top-bar #}
+    <div class="row">
+        <div class="col-12">
+            {# הצגת הודעות flash (אם יש, הן יופיעו מה-base_layout או שאפשר להוסיף בלוק ייעודי כאן) #}
+            {# הכותרת תלויה אם נבחר טיקר או לא #}
+            {% if selected_ticker %}
+                <h2 class="mb-4">{{ company_name | default(selected_ticker) }}</h2>
+            {% else %}
+                <div class="alert alert-info">
+                    <h4 class="alert-heading">Welcome to the Stock Analysis System!</h4>
+                    <p>Please enter a stock ticker in the top bar to begin your analysis.</p>
+                </div>
+            {% endif %}
+
+            {# הצגת הגרפים רק אם יש JSON עבורם #}
+            {% if chart1_json or chart2_json or chart3_json %}
+                <div class="row">
+                    {% if chart1_json %}
+                    <div class="col-lg-12 mb-4"> {# כל גרף יתפוס את כל הרוחב במובייל, ועדיין כל הרוחב במסכים גדולים יותר #}
+                        <div class="card chart-container">
+                            <div class="card-body">
+                                {# הכותרת מוגדרת בתוך ה-layout של הגרף עצמו, אז אין צורך בכותרת נוספת כאן #}
+                                <div id="chart1Div" style="width:100%; height:450px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if chart2_json %}
+                    <div class="col-lg-12 mb-4">
+                        <div class="card chart-container">
+                            <div class="card-body">
+                                <div id="chart2Div" style="width:100%; height:450px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if chart3_json %}
+                    <div class="col-lg-12 mb-4">
+                        <div class="card chart-container">
+                            <div class="card-body">
+                                <div id="chart3Div" style="width:100%; height:450px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            {% elif request.endpoint == 'home_bp.analyze' and selected_ticker %}
+                {# אם זה אחרי ניסיון ניתוח (POST) עבור טיקר מסוים ולא נוצרו גרפים, #}
+                {# הודעות ה-flash מהפונקציה ב-home.py אמורות להסביר למה (למשל, "לא נמצאו נתונים") #}
+                {# אפשר להוסיף כאן הודעה כללית אם רוצים, אבל עדיף שה-flash יטפל בזה #}
+            {% endif %}
+
+            {# הצגת מידע על החברה #}
+            {% if selected_ticker and company_info %}
+            <div class="card chart-container mb-4"> {# שימוש בקלאס chart-container גם למידע החברה לעקביות #}
+                <div class="card-body">
+                    <h5 class="card-title">Company Information</h5>
+                    {% if company_info.description %}
+                        <p class="card-text"><strong>Description:</strong><br>{{ company_info.description }}</p>
+                    {% endif %}
+                    
+                    {# הצגת תיאור בעברית אם קיים ושונה מהאנגלית, או אם הוא טקסט חלופי מהתרגום #}
+                    {% if company_info.description_he and company_info.description_he != company_info.description and company_info.description_he != "לא ניתן היה לתרגם את התיאור." and company_info.description_he != "אין תיאור זמין."%}
+                        <hr>
+                        <p class="card-text" dir="rtl"><strong>תיאור (עברית):</strong><br>{{ company_info.description_he }}</p>
+                    {% elif company_info.description_he and not company_info.description %} {# אם יש רק תרגום (למשל הודעת שגיאה) ואין מקור #}
+                         <hr>
+                         <p class="card-text" dir="rtl"><strong>תיאור (עברית):</strong><br>{{ company_info.description_he }}</p>
+                    {% endif %}
+
+                    {% if company_info.sector %}
+                        <p class="card-text mt-3"><strong>Sector:</strong> {{ company_info.sector }}</p>
+                    {% endif %}
+                    {% if company_info.industry %}
+                        <p class="card-text"><strong>Industry:</strong> {{ company_info.industry }}</p>
+                    {% endif %}
+                    {% if company_info.website %}
+                        <p class="card-text"><strong>Website:</strong> <a href="{{ company_info.website }}" target="_blank">{{ company_info.website }}</a></p>
+                    {% endif %}
+                </div>
+            </div>
+            {% elif selected_ticker and not company_info and request.endpoint == 'home_bp.analyze' %}
+                <div class="alert alert-info">Could not retrieve detailed company information for {{ selected_ticker }}.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() if super }} 
+    
+    {# טען את Plotly.js רק אם יש לפחות JSON אחד של גרף להציג #}
+    {% if chart1_json or chart2_json or chart3_json %}
+        <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script> 
+        <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                function renderPlotlyChart(chartId, chartJsonString) {
+                    const chartDiv = document.getElementById(chartId);
+                    if (!chartDiv) {
+                        console.error("Chart div not found for ID:", chartId);
+                        // אפשר להוסיף הודעה למשתמש כאן אם רוצים
+                        // chartDiv.innerHTML = '<p>שגיאה פנימית: אזור הגרף לא נמצא.</p>';
+                        return;
+                    }
+
+                    // בדוק אם chartJsonString הוא אכן מחרוזת תקינה שמייצגת JSON
+                    if (typeof chartJsonString === 'string' && chartJsonString.trim() !== "" && chartJsonString.toLowerCase() !== 'null') {
+                        try {
+                            var graphData = JSON.parse(chartJsonString);
+                            if (graphData && typeof graphData.data !== 'undefined' && typeof graphData.layout !== 'undefined' && graphData.data.length > 0) {
+                                Plotly.newPlot(chartDiv, graphData.data, graphData.layout, {responsive: true});
+                                console.log(chartId + " rendered successfully.");
+                            } else {
+                                console.warn("Parsed JSON for " + chartId + " is not a valid Plotly object or is empty/missing data/layout properties. Parsed data:", graphData);
+                                chartDiv.innerHTML = '<p>לא ניתן היה להציג את נתוני הגרף (' + chartId.replace("Div","") + ').</p>';
+                            }
+                        } catch (e) {
+                            console.error("Error parsing or plotting JSON for " + chartId + ":", e);
+                            console.log("Problematic JSON string for " + chartId + ":", chartJsonString);
+                            chartDiv.innerHTML = '<p>שגיאה בטעינת הגרף (' + chartId.replace("Div","") + ') עקב בעיית עיבוד נתונים.</p>';
+                        }
+                    } else {
+                        console.warn("No valid JSON data string provided for chart: " + chartId + ". Value received:", chartJsonString);
+                        // הודעת ה-flash מהשרת אמורה לכסות את המקרה של "אין נתונים".
+                        // אם רוצים הודעה ספציפית בתוך ה-div של הגרף:
+                        // chartDiv.innerHTML = '<p>לא סופקו נתונים לגרף (' + chartId.replace("Div","") + ').</p>';
+                    }
+                }
+
+                {% if chart1_json %}
+                renderPlotlyChart('chart1Div', {{ chart1_json | tojson | safe }});
+                {% endif %}
+
+                {% if chart2_json %}
+                renderPlotlyChart('chart2Div', {{ chart2_json | tojson | safe }});
+                {% endif %}
+
+                {% if chart3_json %}
+                renderPlotlyChart('chart3Div', {{ chart3_json | tojson | safe }});
+                {% endif %}
+            });
+        </script>
+    {% endif %}
+{% endblock %}

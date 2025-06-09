@@ -1,0 +1,9 @@
+2025-06-09 02:17:45 - Starting template consolidation
+2025-06-09 02:17:45 - Mapping: templates\404.html -> errors blueprint at app/templates\404.html
+2025-06-09 02:17:45 - Copied templates\404.html to app/templates\404.html
+2025-06-09 02:17:45 - Mapping: templates\500.html -> errors blueprint at app/templates\500.html
+2025-06-09 02:17:45 - Copied templates\500.html to app/templates\500.html
+2025-06-09 02:17:45 - Mapping: templates\base_layout.html -> base blueprint at app/templates\base_layout.html
+2025-06-09 02:17:45 - Copied templates\base_layout.html to app/templates\base_layout.html
+2025-06-09 02:17:45 - Mapping: templates\content_home.html -> main blueprint at app/templates\main\content_home.html
+2025-06-09 02:17:45 - WARNING: Destination file already exists: app/templates\main\content_home.html

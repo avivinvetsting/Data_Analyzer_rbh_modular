@@ -1,6 +1,6 @@
 # tests/conftest.py
 import pytest
-from app import app as flask_app # ודא שזהו הייבוא הנכון לאפליקציית ה-Flask שלך
+from app import create_app  # Use application factory instead
 
 # נסה לייבא את פרטי האדמין מקובץ ה-secret שלך
 # אם הם לא שם, השתמש בברירת מחדל (פחות מומלץ לטווח ארוך אבל יכול לעזור לבדיקות להתחיל)
@@ -13,12 +13,7 @@ except ImportError:
 @pytest.fixture(scope='session')
 def app():
     """מגדיר את אפליקציית Flask עבור כל סשן הבדיקות."""
-    flask_app.config.update({
-        "TESTING": True,
-        "WTF_CSRF_ENABLED": False,
-        "SECRET_KEY": "test_secret_key_for_pytest_session", # חשוב לסשנים
-        "SERVER_NAME": "localhost.test" # יכול לעזור ל-url_for
-    })
+    flask_app = create_app('testing')  # Use testing configuration
     yield flask_app
 
 @pytest.fixture()
