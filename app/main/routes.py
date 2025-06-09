@@ -13,31 +13,6 @@ from flask_login import login_required, current_user
 from app.main import bp
 
 
-@bp.route('/')
-@login_required
-def index():
-    """
-    Main application home page.
-    
-    Renders the home page template directly to avoid redirect loops.
-    
-    Returns:
-        Response: Rendered content_home.html template
-    """
-    from flask import render_template, session
-    
-    current_app.logger.debug(f"User '{current_user.username}' accessed home page (main.index route)")
-    template_data = {
-        'selected_ticker': session.get('selected_ticker'),
-        'company_name': session.get('company_name'),
-        'company_info': session.get('company_info'),
-        'chart1_json': None,
-        'chart2_json': None,
-        'chart3_json': None
-    }
-    return render_template('content_home.html', **template_data)
-
-
 # Register existing blueprints from modules package
 def register_legacy_blueprints(app):
     """
