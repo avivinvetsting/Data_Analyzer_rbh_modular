@@ -1,0 +1,43 @@
+{
+  "mcpServers": {
+    "github.com/AgentDeskAI/browser-tools-mcp": {
+      "command": "npx",
+      "args": [
+        "@agentdeskai/browser-tools-mcp@latest"
+      ],
+      "disabled": false,
+      "autoApprove": []
+    },
+    "github.com/modelcontextprotocol/servers/tree/main/src/github": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "env": {
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "github.com/modelcontextprotocol/servers/tree/main/src/filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "c:/AsusWebStorage/ran@benhur.co/MySyncFolder/python/investingAnalysis/financial_to_exel",
+        "C:/Users/ranbe/OneDrive/Documents/Cline/MCP"
+      ],
+      "disabled": false,
+      "autoApprove": []
+    },
+    "github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}
