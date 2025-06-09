@@ -20,13 +20,35 @@ home_bp = Blueprint('home_bp', __name__)
 @login_required
 def index():
     current_app.logger.debug(f"User '{current_user.username}' accessed home page (index route)")
+    
+    selected_ticker = session.get('selected_ticker')
+    company_name = session.get('company_name')
+    company_info = session.get('company_info')
+    
+    chart1_json_data = None
+    chart2_json_data = None
+    chart3_json_data = None
+
+    if selected_ticker and company_info:
+        current_app.logger.info(f"Attempting to load charts for existing ticker: {selected_ticker}")
+        df_daily_for_charts = get_price_history(selected_ticker, period="max", interval="1d")
+
+        if df_daily_for_charts is not None and not df_daily_for_charts.empty:
+            all_charts_json = create_all_candlestick_charts(df_daily_for_charts, selected_ticker, company_name)
+            chart1_json_data = all_charts_json.get('daily_chart_json')
+            chart2_json_data = all_charts_json.get('weekly_chart_json')
+            chart3_json_data = all_charts_json.get('monthly_chart_json')
+            current_app.logger.info(f"Charts loaded for {selected_ticker}. Daily: {bool(chart1_json_data)}, Weekly: {bool(chart2_json_data)}, Monthly: {bool(chart3_json_data)}")
+        else:
+            current_app.warning(f"No price data found for {selected_ticker} on initial load, charts will not be displayed.")
+
     template_data = {
-        'selected_ticker': session.get('selected_ticker'),
-        'company_name': session.get('company_name'),
-        'company_info': session.get('company_info'),
-        'chart1_json': None,
-        'chart2_json': None,
-        'chart3_json': None
+        'selected_ticker': selected_ticker,
+        'company_name': company_name,
+        'company_info': company_info,
+        'chart1_json': chart1_json_data,
+        'chart2_json': chart2_json_data,
+        'chart3_json': chart3_json_data
     }
     return render_template('content_home.html', **template_data)
 
@@ -55,7 +77,7 @@ def analyze():
         chart2_json_data = None
         chart3_json_data = None
 
-        df_daily_for_charts = get_price_history(ticker_from_form, period="10y", interval="1d")
+        df_daily_for_charts = get_price_history(ticker_from_form, period="max", interval="1d")
 
         if df_daily_for_charts is not None and not df_daily_for_charts.empty:
             current_app.logger.info(f"Price data found for {ticker_from_form} (shape: {df_daily_for_charts.shape}). Generating charts.")

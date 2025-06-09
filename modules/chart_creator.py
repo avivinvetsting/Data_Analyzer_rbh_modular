@@ -10,7 +10,7 @@ import json
 
 def resample_ohlc(df: pd.DataFrame, rule: str) -> pd.DataFrame:
     """
-    Resample OHLC data to a given frequency (e.g., 'W' for weekly, 'ME' for monthly).
+    Resample OHLC data to a given frequency (e.g., 'W' for weekly, 'M' for monthly).
     """
     current_app.logger.debug(f"Resampling OHLC data with rule: {rule}. Original shape: {df.shape}")
     ohlc_dict = {
@@ -197,7 +197,7 @@ def create_all_candlestick_charts(df_daily_full: pd.DataFrame, ticker: str, comp
     
     try:
         current_app.logger.info(f"Resampling daily data to monthly for {ticker}.")
-        monthly_df = resample_ohlc(df_daily_full, 'ME') 
+        monthly_df = resample_ohlc(df_daily_full, 'M')
         if monthly_df.empty:
             current_app.logger.warning(f"Monthly resampled data is empty for {ticker}.")
         else:
