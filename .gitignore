@@ -43,3 +43,6 @@ Documents/
 # Ignore testing artifacts
 .coverage
 pytestdebug.log
+
+.claude/
+.clinerules/
